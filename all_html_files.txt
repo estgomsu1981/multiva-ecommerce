@@ -1,0 +1,831 @@
+--- START OF FILE listado_descuentos.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Descuento Cliente Frecuente</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <h2 style="text-align: left; margin-bottom: 2rem;">Gestión de Descuento Cliente Frecuente</h2>
+
+    <div style="background-color: #f9f9f9; padding: 1.5rem; border-radius: 8px;">
+        <h3 style="text-align: left; margin-top: 0;">Descuento para Cliente Frecuente</h3>
+        <p>Aplica un descuento general a todos los clientes marcados como "Frecuentes". Este porcentaje se aplicará sobre el total de sus compras.</p>
+        <div id="form-descuento-frecuente" style="margin-top: 1rem; max-width: 400px;">
+            <form onsubmit="guardarDescuentoFrecuente(event)">
+                <label for="porcentaje-descuento">Porcentaje de Descuento (%):</label>
+                <div style="display: flex; gap: 1rem;">
+                    <input id="porcentaje-descuento" max="100" min="0" step="1" type="number" placeholder="Ej: 5" required/>
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <a href="perfil_administrador.html" class="btn btn-secondary" style="margin-top: 2rem;">Volver al Panel</a>
+</div>
+<script>
+    function guardarDescuentoFrecuente(event) {
+        event.preventDefault();
+        const valor = document.getElementById('porcentaje-descuento').value;
+        if (valor === '' || isNaN(valor) || valor < 0 || valor > 100) {
+            alert('Por favor, ingrese un número válido entre 0 y 100.');
+            return;
+        }
+        // Aquí iría la lógica para guardar el valor en el backend
+        alert('Descuento para cliente frecuente guardado: ' + valor + '%');
+    }
+</script>
+</body>
+</html>
+--- START OF FILE perfil_administrador.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Administrador</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <h2>Panel de Administrador</h2>
+    <ul class="admin-menu">
+        <li><span class="menu-header">Gestión de Inventario</span>
+            <ul class="submenu">
+                <li><a href="listado_productos.html">Gestión de Productos</a></li>
+                <li><a href="listado_categorias.html">Gestión de Categorías</a></li>
+                <li><a href="listado_descuentos.html">Gestión de Descuento Cliente Frecuente</a></li>
+            </ul>
+        </li>
+        <li><span class="menu-header">Gestión de Usuarios</span>
+            <ul class="submenu">
+                <li><a href="administracion_usuarios.html">Administrar Usuarios/Clientes</a></li>
+            </ul>
+        </li>
+        <li><a href="index.html" class="menu-header" style="background-color: var(--secondary-color);">Volver al Sitio Principal</a></li>
+    </ul>
+</div>
+</body>
+</html>
+--- START OF FILE listado_productos.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Productos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" style="max-width: 1400px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="text-align: left; margin: 0;">Listado de Productos</h2>
+        <button id="btn-mostrar-form-crear" class="btn btn-success">Crear Nuevo Producto</button>
+    </div>
+    <div id="form-crear-producto" style="display: none; background-color: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+        <h3 style="margin-top: 0;">Nuevo Producto</h3>
+        <form id="crear-producto-form">
+            <label>Nombre: <input type="text" name="nombre" required></label>
+            <label>Categoría: <select name="categoria" required></select></label>
+            <label>Descripción: <textarea name="descripcion" rows="2"></textarea></label>
+            <label>Especificación: <textarea name="especificacion" rows="2"></textarea></label>
+            <label>Precio: <input type="number" name="precio" required></label>
+            <label>Mínimo Compra: <input type="number" name="minimo" required></label>
+            <label>Descuento (%): <input type="number" name="descuento" value="0"></label>
+            <label>Imagen: <input type="file" name="imagen" accept="image/*"></label>
+            <div><button type="submit" class="btn btn-success">Añadir Producto</button><button type="button" id="btn-cancelar-crear" class="btn btn-secondary">Cancelar</button></div>
+        </form>
+    </div>
+    <div class="table-responsive-wrapper">
+        <table id="tabla-productos">
+            <thead>
+                <tr><th>ID</th><th>Nombre</th><th>Categoría</th><th>Descripción</th><th>Especificación</th><th>Precio</th><th>Mínimo Compra</th><th>Descuento (%)</th><th>Imagen</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>001</td><td>Taladro</td><td>Herramientas</td><td>Potente taladro percutor de 18V.</td><td>Voltaje: 18V, Batería: 2Ah</td><td>12000</td><td>2</td><td>0</td><td>taladro.jpg</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+                <tr><td>002</td><td>Cemento gris tipo I</td><td>Materiales</td><td>Cemento gris de uso general.</td><td>Tipo: Portland, Peso: 50kg</td><td>5200</td><td>10</td><td>10</td><td>cemento1.png</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+                <tr><td>003</td><td>Martillo</td><td>Herramientas</td><td>Martillo de uña con mango de fibra de vidrio.</td><td>Peso: 16oz, Material: Acero forjado</td><td>4500</td><td>1</td><td>15</td><td>martillo.png</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <a href="perfil_administrador.html" class="btn btn-secondary" style="margin-top: 1.5rem;">Volver al Panel</a>
+</div>
+<div id="data-categorias" style="display: none;"><span data-id="001">Herramientas</span><span data-id="002">Materiales</span><span data-id="003">Pisos y Acabados</span><span data-id="004">Electricidad</span></div>
+<script>
+    const formCrearProducto = document.getElementById('form-crear-producto');
+    const btnMostrarFormProducto = document.getElementById('btn-mostrar-form-crear');
+    const btnCancelarCrearProducto = document.getElementById('btn-cancelar-crear');
+    const tablaProductos = document.getElementById('tabla-productos').getElementsByTagName('tbody')[0];
+    const formProducto = document.getElementById('crear-producto-form');
+    const categoriasDisponibles = Array.from(document.querySelectorAll('#data-categorias span')).map(span => span.textContent);
+    function poblarSelectCategorias(selectElement, valorActual = null) {
+        selectElement.innerHTML = '';
+        categoriasDisponibles.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            if (cat === valorActual) { option.selected = true; }
+            selectElement.appendChild(option);
+        });
+    }
+    poblarSelectCategorias(document.querySelector('#crear-producto-form select[name="categoria"]'));
+    btnMostrarFormProducto.addEventListener('click', () => { formCrearProducto.style.display = 'block'; });
+    btnCancelarCrearProducto.addEventListener('click', () => { formCrearProducto.style.display = 'none'; formProducto.reset(); });
+    formProducto.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const newId = (Math.random() * 1000).toFixed(0).padStart(3, '0');
+        const imagenFile = formData.get('imagen');
+        const imagenNombre = imagenFile ? imagenFile.name : 'N/A';
+        const newRow = tablaProductos.insertRow();
+        newRow.innerHTML = `<td>${newId}</td><td>${formData.get('nombre')}</td><td>${formData.get('categoria')}</td><td>${formData.get('descripcion')}</td><td>${formData.get('especificacion')}</td><td>${formData.get('precio')}</td><td>${formData.get('minimo')}</td><td>${formData.get('descuento')}</td><td>${imagenNombre}</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td>`;
+        e.target.reset();
+        formCrearProducto.style.display = 'none';
+    });
+    tablaProductos.addEventListener('click', function(e) {
+        if (e.target.classList.contains('eliminar-btn')) {
+            if (confirm('¿Estás seguro de que deseas eliminar este producto?')) { e.target.closest('tr').remove(); }
+        }
+        if (e.target.classList.contains('editar-btn')) {
+            const row = e.target.closest('tr');
+            const cellsToEdit = Array.from(row.children).slice(1, 8); 
+            if (e.target.textContent === 'Editar') {
+                cellsToEdit.forEach((cell, index) => {
+                    const currentValue = cell.textContent;
+                    if (index === 1) { 
+                        const select = document.createElement('select');
+                        poblarSelectCategorias(select, currentValue);
+                        cell.innerHTML = '';
+                        cell.appendChild(select);
+                    } else {
+                        cell.innerHTML = `<input type="text" value="${currentValue}" style="width: 100%;">`;
+                    }
+                });
+                e.target.textContent = 'Guardar';
+                e.target.classList.replace('btn-primary', 'btn-success');
+            } else {
+                cellsToEdit.forEach((cell) => {
+                    cell.textContent = cell.querySelector('input, select').value;
+                });
+                e.target.textContent = 'Editar';
+                e.target.classList.replace('btn-success', 'btn-primary');
+            }
+        }
+    });
+</script>
+</body>
+</html>
+--- START OF FILE olvido_su_contraseña.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Olvidó su Contraseña</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container" style="max-width: 500px;">
+    <h2>Restablecer Contraseña</h2>
+    <p style="text-align: center; color: var(--dark-text); margin-bottom: 2rem;">Por favor introduzca su dirección de correo para recibir un enlace de restablecimiento.</p>
+    <form><label for="email">Correo electrónico</label><input type="email" id="email" name="email" required><button type="submit" class="btn btn-primary" style="width: 100%;">Restablecer contraseña</button><a href="inicio_sesion_cliente.html" style="text-align: center; display: block; margin-top: 1rem;">Volver a Inicio de Sesión</a></form>
+  </div>
+  <div style="text-align: center; margin-top: 1rem;"><a href="index.html">‹ Volver a la página principal</a></div>
+</body>
+</html>
+--- START OF FILE administracion_usuarios.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Administrar Usuarios</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" style="max-width: 1200px;">
+    <h2>Administrar Usuarios</h2>
+    <div class="table-responsive-wrapper">
+        <table>
+            <thead><tr><th>Nombre</th><th>Apellido</th><th>Correo</th><th>Usuario</th><th>Dirección</th><th>Categoría Cliente</th><th>Tipo Usuario</th><th>Acciones</th></tr></thead>
+            <tbody>
+                <tr><td>Christian</td><td>Arias</td><td>chrismorel@hotmail.com</td><td>carias</td><td>San José, Costa Rica</td><td><select class="categoria-cliente" disabled><option selected>Regular</option><option>Frecuente</option></select></td><td><select class="tipo-usuario" disabled><option selected>Cliente</option><option>Administrador</option></select></td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <a href="perfil_administrador.html" class="btn btn-secondary" style="margin-top: 1.5rem;">Volver al Panel</a>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const table = document.querySelector('table');
+        table.addEventListener('click', function(e) {
+            if (e.target.classList.contains('eliminar-btn')) {
+                if (confirm('¿Estás seguro de que deseas eliminar este usuario?')) { e.target.closest('tr').remove(); }
+            }
+            if (e.target.classList.contains('editar-btn')) {
+                const row = e.target.closest('tr');
+                const selects = row.querySelectorAll("select");
+                const cellsToEdit = Array.from(row.children).slice(0, 5); 
+                if (e.target.textContent === "Editar") {
+                    cellsToEdit.forEach(td => {
+                        const input = document.createElement("input");
+                        input.type = "text";
+                        input.value = td.textContent;
+                        td.textContent = "";
+                        td.appendChild(input);
+                    });
+                    selects.forEach(sel => sel.disabled = false);
+                    e.target.textContent = "Guardar";
+                    e.target.classList.replace('btn-primary', 'btn-success');
+                } else {
+                    cellsToEdit.forEach(td => { if (td.firstChild && td.firstChild.tagName === "INPUT") { td.textContent = td.firstChild.value; } });
+                    selects.forEach(sel => sel.disabled = true);
+                    e.target.textContent = "Editar";
+                    e.target.classList.replace('btn-success', 'btn-primary');
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>
+--- START OF FILE carrito.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="main-header">
+    <a href="index.html"><img src="images/logo.png" alt="Logo Multiva" class="logo"></a>
+    <button class="nav-toggle-btn" id="nav-toggle"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+    <nav class="main-nav" id="main-nav-links">
+        <a href="index.html">Inicio</a>
+        <div class="dropdown"><a href="#">Catálogo</a><div class="dropdown-content"><a href="cemento.html">Cemento</a><a href="#">Bloques y Ladrillos</a><a href="#">Varillas y Acero</a><a href="#">Herramientas</a><a href="#">Madera</a><a href="#">Acabados</a></div></div>
+        <a href="descuentos.html">Descuentos</a>
+        <a href="preguntas_frecuentes.html">Preguntas Frecuentes</a>
+        <a href="acerca_de_la_empresa.html">Acerca de la empresa</a>
+        <a href="ayuda.html">Ayuda</a>
+        <div class="dropdown"><a href="#">Mi Cuenta</a><div class="dropdown-content"><a href="inicio_sesion_cliente.html">Iniciar Sesión</a><a href="crear_nueva_cuenta.html">Registrarse</a><hr style="border-color: #4a515f;"><a href="perfil_administrador.html">Panel Administrador</a></div></div>
+        <a href="carrito.html"><img src="images/carrito.png" alt="Carrito" style="height: 24px; vertical-align: middle;"></a>
+    </nav>
+</header>
+<div class="container">
+    <h2>Carrito de Compras</h2>
+    <div class="table-responsive-wrapper">
+        <table id="tabla-carrito">
+            <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Unitario</th><th>Subtotal</th><th>Acción</th></tr></thead>
+            <tbody>
+                <tr><td>Cemento gris tipo I</td><td>10</td><td>₡5,200</td><td>₡52,000</td><td><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+                <tr><td>Cemento resistente a la humedad</td><td>50</td><td>₡5,800</td><td>₡290,000</td><td><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="cart-total"><strong>Total: ₡342,000</strong></div>
+    <div class="cart-actions"><a href="index.html" class="btn btn-secondary">Seguir Comprando</a><a href="chat_cotizacion.html" class="btn btn-warning">Solicitar Cotización</a></div>
+</div>
+<footer class="main-footer"><p>© 2025 Multiva. Todos los derechos reservados.</p></footer>
+<script>
+    document.getElementById('nav-toggle').addEventListener('click', function() { document.getElementById('main-nav-links').classList.toggle('is-open'); });
+    document.getElementById('tabla-carrito').addEventListener('click', function(e) {
+        if (e.target.classList.contains('eliminar-btn')) {
+            if (confirm('¿Estás seguro de que deseas eliminar este producto del carrito?')) { e.target.closest('tr').remove(); }
+        }
+    });
+</script>
+</body>
+</html>
+--- START OF FILE cotizacion.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitar Cotización</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="main-header">
+    <a href="index.html"><img src="images/logo.png" alt="Logo Multiva" class="logo"></a>
+    <button class="nav-toggle-btn" id="nav-toggle"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+    <nav class="main-nav" id="main-nav-links">
+        <a href="index.html">Inicio</a>
+        <div class="dropdown"><a href="#">Catálogo</a><div class="dropdown-content"><a href="cemento.html">Cemento</a><a href="#">Bloques y Ladrillos</a><a href="#">Varillas y Acero</a><a href="#">Herramientas</a><a href="#">Madera</a><a href="#">Acabados</a></div></div>
+        <a href="descuentos.html">Descuentos</a>
+        <a href="preguntas_frecuentes.html">Preguntas Frecuentes</a>
+        <a href="acerca_de_la_empresa.html">Acerca de la empresa</a>
+        <a href="ayuda.html">Ayuda</a>
+        <div class="dropdown"><a href="#">Mi Cuenta</a><div class="dropdown-content"><a href="inicio_sesion_cliente.html">Iniciar Sesión</a><a href="crear_nueva_cuenta.html">Registrarse</a><hr style="border-color: #4a515f;"><a href="perfil_administrador.html">Panel Administrador</a></div></div>
+        <a href="carrito.html"><img src="images/carrito.png" alt="Carrito" style="height: 24px; vertical-align: middle;"></a>
+    </nav>
+</header>
+<div class="container" style="max-width: 800px;">
+    <h2>👷 Asistente de Cotización</h2>
+    <p style="text-align: center;">Revisa tu pedido y completa tus datos para generar la solicitud.</p>
+    <div class="table-responsive-wrapper">
+        <table id="resumen-pedido" style="margin-bottom: 2rem;">
+            <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Unitario</th><th>Subtotal</th></tr></thead>
+            <tbody>
+                <tr><td>Cemento gris tipo I</td><td>10</td><td>₡5,200</td><td>₡52,000</td></tr>
+                <tr><td>Cemento resistente a la humedad</td><td>50</td><td>₡5,800</td><td>₡290,000</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <form id="form-cotizacion">
+        <label for="nombre">Nombre completo:</label><input type="text" id="nombre" name="nombre" required />
+        <label for="empresa">Empresa (opcional):</label><input type="text" id="empresa" name="empresa" />
+        <label for="correo">Correo electrónico:</label><input type="email" id="correo" name="correo" required />
+        <label for="telefono">Teléfono:</label><input type="tel" id="telefono" name="telefono" required />
+        <label for="comentarios">Detalles adicionales o comentarios:</label><textarea name="comentarios" id="comentarios" rows="4"></textarea>
+        <label for="imagen">Imagen de referencia (opcional):</label><input type="file" name="imagen" id="imagen" accept="image/*" />
+        <button type="submit" class="btn btn-warning" style="width: 100%; padding: 1rem; font-size: 1.2rem;">Enviar Solicitud</button>
+    </form>
+</div>
+<footer class="main-footer"><p>© 2025 Multiva. Todos los derechos reservados.</p></footer>
+<script>document.getElementById('nav-toggle').addEventListener('click', function() { document.getElementById('main-nav-links').classList.toggle('is-open'); });</script>
+</body>
+</html>
+--- START OF FILE cemento.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cemento - Multiva</title>
+  <link rel="stylesheet" href="style.css">
+  <style>.producto-detalles { text-align: left; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); } .producto-detalles h4 { margin-top: 1rem; margin-bottom: 0.5rem; color: var(--secondary-color); font-size: 1rem; font-weight: bold;} .price-container { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; margin-top: 0.5rem; } .original-price { text-decoration: line-through; color: #999; font-size: 0.9rem; } .discounted-price { color: var(--danger-color); font-weight: bold; font-size: 1.2rem; }</style>
+</head>
+<body>
+<header class="main-header">
+    <a href="index.html"><img src="images/logo.png" alt="Logo Multiva" class="logo"></a>
+    <button class="nav-toggle-btn" id="nav-toggle"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+    <nav class="main-nav" id="main-nav-links">
+        <a href="index.html">Inicio</a>
+        <div class="dropdown"><a href="#">Catálogo</a><div class="dropdown-content"><a href="cemento.html">Cemento</a><a href="#">Bloques y Ladrillos</a><a href="#">Varillas y Acero</a><a href="#">Herramientas</a><a href="#">Madera</a><a href="#">Acabados</a></div></div>
+        <a href="descuentos.html">Descuentos</a>
+        <a href="preguntas_frecuentes.html">Preguntas Frecuentes</a>
+        <a href="acerca_de_la_empresa.html">Acerca de la empresa</a>
+        <a href="ayuda.html">Ayuda</a>
+        <div class="dropdown"><a href="#">Mi Cuenta</a><div class="dropdown-content"><a href="inicio_sesion_cliente.html">Iniciar Sesión</a><a href="crear_nueva_cuenta.html">Registrarse</a><hr style="border-color: #4a515f;"><a href="perfil_administrador.html">Panel Administrador</a></div></div>
+        <a href="carrito.html"><img src="images/carrito.png" alt="Carrito" style="height: 24px; vertical-align: middle;"></a>
+    </nav>
+</header>
+<div class="container">
+  <h2>Productos de Cemento</h2>
+  <div class="productos">
+    <div class="producto">
+      <div class="discount-tag">10% OFF</div>
+      <img src="images/cemento1.png" alt="Cemento gris tipo I">
+      <h3>Cemento gris tipo I</h3>
+      <div class="price-container">
+        <span class="original-price">₡5,200</span>
+        <span class="discounted-price">₡4,680</span>
+      </div>
+      <p class="min-purchase">Mínimo: 10 unidades</p>
+      <div class="quantity-selector"><input type="number" id="cantidad1" min="10" value="10"></div>
+      <button class="btn add-to-cart-btn">Agregar al carrito</button>
+      <div class="producto-detalles"><h4>Descripción:</h4><p>Cemento Portland de uso general, ideal para concretos, morteros y todo tipo de construcción que no requiera características especiales.</p><h4>Especificaciones:</h4><p>Peso: 50kg. Resistencia a 28 días: 42.5 N/mm². Cumple norma ASTM C-150.</p></div>
+    </div>
+    <div class="producto">
+      <img src="images/cemento2.png" alt="Cemento resistente a la humedad">
+      <h3>Cemento resistente a la humedad</h3>
+      <p class="price">₡5,800 / saco 50 kg</p><p class="min-purchase">Mínimo: 50 unidades</p>
+      <div class="quantity-selector"><input type="number" id="cantidad2" min="50" value="50"></div>
+      <button class="btn add-to-cart-btn">Agregar al carrito</button>
+      <div class="producto-detalles"><h4>Descripción:</h4><p>Formulado con aditivos hidrófugos para repeler la humedad, perfecto para cimientos, sótanos y zonas costeras.</p><h4>Especificaciones:</h4><p>Peso: 50kg. Tipo: HS (Alta Resistencia a Sulfatos).</p></div>
+    </div>
+    <div class="producto">
+      <img src="images/cemento3.png" alt="Cemento ultra rápido">
+      <h3>Cemento ultra rápido</h3>
+      <p class="price">₡6,300 / saco 50 kg</p><p class="min-purchase">Mínimo: 100 unidades</p>
+      <div class="quantity-selector"><input type="number" id="cantidad3" min="100" value="100"></div>
+      <button class="btn add-to-cart-btn">Agregar al carrito</button><div class="producto-detalles"><h4>Descripción:</h4><p>Cemento de fraguado rápido para reparaciones urgentes y proyectos que requieren habilitación en pocas horas.</p><h4>Especificaciones:</h4><p>Peso: 50kg. Tiempo de Fraguado: 3-5 horas. Alta resistencia inicial.</p></div>
+    </div>
+  </div>
+  <div style="text-align: center; margin-top: 2rem;"><a href="carrito.html" class="btn btn-warning" style="font-size: 1.2rem;">🛒 Ir al carrito</a></div>
+</div>
+<footer class="main-footer"><p>© 2025 Multiva. Todos los derechos reservados.</p></footer>
+<script>document.getElementById('nav-toggle').addEventListener('click', function() { document.getElementById('main-nav-links').classList.toggle('is-open'); });</script>
+</body>
+</html>
+--- START OF FILE chat_cotizacion.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente de Cotización</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .chat-box { height: 300px; overflow-y: auto; padding: 1rem; background: #fff; border: 1px solid var(--border-color); margin-bottom: 1rem; border-radius: 5px; }
+        .chat-message { margin: 0.5rem 0; padding: 0.75rem; border-radius: 10px; max-width: 80%; line-height: 1.4; }
+        .user-message { text-align: left; background-color: var(--primary-color); color: var(--white); margin-left: auto; }
+        .bot-message { text-align: left; background-color: #f1f1f1; }
+        .input-area { display: flex; gap: 0.5rem; }
+        .input-area input { flex-grow: 1; }
+        thead th { background-color: var(--secondary-color); }
+    </style>
+</head>
+<body>
+<header class="main-header">
+    <a href="index.html"><img src="images/logo.png" alt="Logo Multiva" class="logo"></a>
+    <button class="nav-toggle-btn" id="nav-toggle"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+    <nav class="main-nav" id="main-nav-links">
+        <a href="index.html">Inicio</a>
+        <div class="dropdown"><a href="#">Catálogo</a><div class="dropdown-content"><a href="cemento.html">Cemento</a><a href="#">Bloques y Ladrillos</a><a href="#">Varillas y Acero</a><a href="#">Herramientas</a><a href="#">Madera</a><a href="#">Acabados</a></div></div>
+        <a href="descuentos.html">Descuentos</a>
+        <a href="preguntas_frecuentes.html">Preguntas Frecuentes</a>
+        <a href="acerca_de_la_empresa.html">Acerca de la empresa</a>
+        <a href="ayuda.html">Ayuda</a>
+        <div class="dropdown"><a href="#">Mi Cuenta</a><div class="dropdown-content"><a href="inicio_sesion_cliente.html">Iniciar Sesión</a><a href="crear_nueva_cuenta.html">Registrarse</a><hr style="border-color: #4a515f;"><a href="perfil_administrador.html">Panel Administrador</a></div></div>
+        <a href="carrito.html"><img src="images/carrito.png" alt="Carrito" style="height: 24px; vertical-align: middle;"></a>
+    </nav>
+</header>
+<div class="container">
+    <h2>🤖 Multiva Assist - Cotización</h2>
+    <h3>📝 Pedido cargado:</h3>
+    <div class="table-responsive-wrapper">
+        <table style="margin-top: 1rem;">
+            <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Unitario</th><th>Subtotal</th></tr></thead>
+            <tbody>
+                <tr><td>Cemento gris tipo I</td><td>10</td><td>₡5,200</td><td>₡52,000</td></tr>
+                <tr><td>Cemento resistente a la humedad</td><td>50</td><td>₡5,800</td><td>₡290,000</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="chat" class="chat-box" style="margin-top: 2rem;">
+        <div class="chat-message bot-message">Hola 👋, soy <strong>Multiva Assist</strong>. He cargado tu pedido para cotizar. Para continuar, por favor indícame tu nombre completo, correo y teléfono 📞.</div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="entrada" placeholder="Escribí tu mensaje..." onkeydown="if(event.key==='Enter')enviarMensaje()"/>
+        <button class="btn btn-warning" onclick="enviarMensaje()">Enviar</button>
+    </div>
+</div>
+<footer class="main-footer"><p>© 2025 Multiva. Todos los derechos reservados.</p></footer>
+<script>
+    document.getElementById('nav-toggle').addEventListener('click', function() { document.getElementById('main-nav-links').classList.toggle('is-open'); });
+    function enviarMensaje() {
+        const input = document.getElementById("entrada"); const mensaje = input.value.trim(); if (!mensaje) return;
+        const chat = document.getElementById("chat"); const userMsg = document.createElement("div");
+        userMsg.className = "chat-message user-message"; userMsg.textContent = mensaje; chat.appendChild(userMsg);
+        const respuesta = "Gracias por tu información. Un agente te contactará pronto para confirmar los detalles de tu cotización.";
+        setTimeout(() => { const botMsg = document.createElement("div"); botMsg.className = "chat-message bot-message"; botMsg.textContent = respuesta; chat.appendChild(botMsg); chat.scrollTop = chat.scrollHeight; }, 1000);
+        chat.scrollTop = chat.scrollHeight; input.value = "";
+    }
+</script>
+</body>
+</html>
+--- START OF FILE crear_nueva_cuenta.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Nueva Cuenta</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" style="max-width: 500px;">
+    <h2>Crear Nueva Cuenta</h2>
+    <form>
+        <label for="nombre">Nombre</label><input id="nombre" name="nombre" type="text" required>
+        <label for="apellidos">Apellidos</label><input id="apellidos" name="apellidos" type="text" required>
+        <label for="direccion">Dirección</label><input id="direccion" name="direccion" type="text" required>
+        <label for="usuario">Nombre de Usuario</label><input id="usuario" name="usuario" placeholder="Ej: usuario123" type="text" required>
+        <label for="email">Correo electrónico</label><input id="email" name="email" type="email" required>
+        <label for="password">Contraseña</label><input id="password" name="password" type="password" required>
+        <button type="submit" class="btn btn-primary" style="width: 100%;">Registrarse</button>
+        <a href="inicio_sesion_cliente.html" style="text-align: center; display: block; margin-top: 1rem;">¿Ya tienes una cuenta? Inicia Sesión</a>
+    </form>
+</div>
+<div style="text-align: center; margin-top: 1rem;"><a href="index.html">‹ Volver a la página principal</a></div>
+</body>
+</html>
+--- START OF FILE inicio_sesion_cliente.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio de Sesión - Cliente</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container" style="max-width: 450px;">
+    <h2>Iniciar Sesión</h2>
+    <form>
+      <label for="email">Correo electrónico o Usuario</label><input type="text" id="email" name="email" required>
+      <label for="password">Contraseña</label><input type="password" id="password" name="password" required>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Ingresar</button>
+      <div style="text-align: center; margin-top: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+        <a href="olvido_su_contraseña.html">¿Olvidaste tu contraseña?</a>
+        <a href="crear_nueva_cuenta.html">¿No tienes una cuenta? Regístrate</a>
+      </div>
+    </form>
+  </div>
+  <div style="text-align: center; margin-top: 1rem;"><a href="index.html">‹ Volver a la página principal</a></div>
+</body>
+</html>
+--- START OF FILE index.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiva</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="main-header">
+    <a href="index.html"><img src="images/logo.png" alt="Logo Multiva" class="logo"></a>
+    <button class="nav-toggle-btn" id="nav-toggle"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+    <nav class="main-nav" id="main-nav-links">
+        <a href="index.html">Inicio</a>
+        <div class="dropdown"><a href="#">Catálogo</a><div class="dropdown-content"><a href="cemento.html">Cemento</a><a href="#">Bloques y Ladrillos</a><a href="#">Varillas y Acero</a><a href="#">Herramientas</a><a href="#">Madera</a><a href="#">Acabados</a></div></div>
+        <a href="descuentos.html">Descuentos</a>
+        <a href="preguntas_frecuentes.html">Preguntas Frecuentes</a>
+        <a href="acerca_de_la_empresa.html">Acerca de la empresa</a>
+        <a href="ayuda.html">Ayuda</a>
+        <div class="dropdown"><a href="#">Mi Cuenta</a><div class="dropdown-content"><a href="inicio_sesion_cliente.html">Iniciar Sesión</a><a href="crear_nueva_cuenta.html">Registrarse</a><hr style="border-color: #4a515f;"><a href="perfil_administrador.html">Panel Administrador</a></div></div>
+        <a href="carrito.html"><img src="images/carrito.png" alt="Carrito" style="height: 24px; vertical-align: middle;"></a>
+    </nav>
+</header>
+<section style="padding: 0; text-align: center; background-color: white;">
+    <a href="cemento.html"><img src="images/categorias-rebajas.png" alt="Categorías y rebajas" style="max-width: 100%; height: auto; display: block; margin: auto;"></a>
+</section>
+<footer class="main-footer"><p>© 2025 Multiva. Todos los derechos reservados.</p></footer>
+<script>document.getElementById('nav-toggle').addEventListener('click', function() { document.getElementById('main-nav-links').classList.toggle('is-open'); });</script>
+</body>
+</html>
+--- START OF FILE listado_categorias.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Categorías</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="text-align: left; margin: 0;">Listado de Categorías</h2>
+        <button id="btn-mostrar-form-crear" class="btn btn-success">Crear Nueva Categoría</button>
+    </div>
+    <div id="form-crear-categoria" style="display: none; background-color: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+        <h3 style="margin-top: 0;">Nueva Categoría</h3>
+        <form id="crear-categoria-form">
+            <label>Nombre de Categoría: <input type="text" name="nombre" required></label>
+            <label>Imagen: <input type="file" name="imagen" accept="image/*"></label>
+            <div><button type="submit" class="btn btn-success">Añadir Categoría</button><button type="button" id="btn-cancelar-crear" class="btn btn-secondary">Cancelar</button></div>
+        </form>
+    </div>
+    <div class="table-responsive-wrapper">
+        <table id="tabla-categorias">
+            <thead><tr><th>ID</th><th>Nombre de Categoría</th><th>Imagen</th><th>Acciones</th></tr></thead>
+            <tbody>
+                <tr><td>001</td><td>Herramientas</td><td>herramientas.jpg</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+                <tr><td>002</td><td>Materiales</td><td>materiales.jpg</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <a href="perfil_administrador.html" class="btn btn-secondary" style="margin-top: 1.5rem;">Volver al Panel</a>
+</div>
+<script>
+    const formCrearCategoria = document.getElementById('form-crear-categoria');
+    const btnMostrarFormCategoria = document.getElementById('btn-mostrar-form-crear');
+    const btnCancelarCrearCategoria = document.getElementById('btn-cancelar-crear');
+    const tablaCategorias = document.getElementById('tabla-categorias').getElementsByTagName('tbody')[0];
+    const formCategoria = document.getElementById('crear-categoria-form');
+    btnMostrarFormCategoria.addEventListener('click', () => { formCrearCategoria.style.display = 'block'; });
+    btnCancelarCrearCategoria.addEventListener('click', () => { formCrearCategoria.style.display = 'none'; formCategoria.reset(); });
+    formCategoria.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nombreCategoria = e.target.elements.nombre.value;
+        const imagenFile = e.target.elements.imagen.files[0];
+        const imagenNombre = imagenFile ? imagenFile.name : 'N/A';
+        const newId = (Math.random() * 1000).toFixed(0).padStart(3, '0');
+        const newRow = tablaCategorias.insertRow();
+        newRow.innerHTML = `<td>${newId}</td><td>${nombreCategoria}</td><td>${imagenNombre}</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td>`;
+        formCategoria.reset();
+        formCrearCategoria.style.display = 'none';
+    });
+    tablaCategorias.addEventListener('click', function (e) {
+        if (e.target.classList.contains('eliminar-btn')) { if (confirm('¿Estás seguro de que deseas eliminar esta categoría?')) { e.target.closest('tr').remove(); } }
+        if (e.target.classList.contains('editar-btn')) {
+            const row = e.target.closest('tr');
+            const cellNombre = row.children[1]; 
+            if (e.target.textContent === 'Editar') {
+                const currentName = cellNombre.textContent;
+                cellNombre.innerHTML = `<input type="text" value="${currentName}" style="width: 100%;">`;
+                e.target.textContent = 'Guardar';
+                e.target.classList.replace('btn-primary', 'btn-success');
+            } else {
+                const input = cellNombre.querySelector('input');
+                cellNombre.textContent = input.value;
+                e.target.textContent = 'Editar';
+                e.target.classList.replace('btn-success', 'btn-primary');
+            }
+        }
+    });
+</script>
+</body>
+</html>
+--- START OF FILE acerca_de_la_empresa.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acerca de Multiva Group</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="main-header">
+    <a href="index.html"><img src="images/logo.png" alt="Logo Multiva" class="logo"></a>
+    <button class="nav-toggle-btn" id="nav-toggle"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+    <nav class="main-nav" id="main-nav-links">
+        <a href="index.html">Inicio</a>
+        <div class="dropdown"><a href="#">Catálogo</a><div class="dropdown-content"><a href="cemento.html">Cemento</a><a href="#">Bloques y Ladrillos</a><a href="#">Varillas y Acero</a><a href="#">Herramientas</a><a href="#">Madera</a><a href="#">Acabados</a></div></div>
+        <a href="descuentos.html">Descuentos</a>
+        <a href="preguntas_frecuentes.html">Preguntas Frecuentes</a>
+        <a href="acerca_de_la_empresa.html">Acerca de la empresa</a>
+        <a href="ayuda.html">Ayuda</a>
+        <div class="dropdown"><a href="#">Mi Cuenta</a><div class="dropdown-content"><a href="inicio_sesion_cliente.html">Iniciar Sesión</a><a href="crear_nueva_cuenta.html">Registrarse</a><hr style="border-color: #4a515f;"><a href="perfil_administrador.html">Panel Administrador</a></div></div>
+        <a href="carrito.html"><img src="images/carrito.png" alt="Carrito" style="height: 24px; vertical-align: middle;"></a>
+    </nav>
+</header>
+<div class="container">
+    <h2>Acerca de Multiva Group</h2>
+    <div class="about-section">
+        <h3>🏠 Bienvenidos a Multiva Group</h3>
+        <p>En Multiva Group, nos especializamos en la importación y comercialización de acabados superiores para la construcción y el diseño de interiores. Nuestro compromiso es brindar soluciones duraderas, estéticas y de calidad certificada, adaptadas a los gustos y necesidades del mercado costarricense.</p>
+        <p><strong>La calidad no es un agregado. Es el estándar.</strong></p>
+    </div>
+    <div class="about-section"><h3>📖 Nuestra Historia</h3><p>Multiva Group nace en el contexto de relaciones estratégicas con fabricantes certificados en China y una estructura logística establecida en Costa Rica. Desarrollamos un modelo que nos permite ofrecer acabados de alta gama al detalle, con procesos más ágiles, precios accesibles y respaldo técnico local.</p><p>Nuestra ventaja competitiva: ofrecemos productos premium al detalle, con estándares internacionales de calidad y acceso directo desde origen, eliminando sobrecostos y garantizando la excelencia en cada entrega.</p></div>
+    <div class="about-section"><h3>🌟 Visión</h3><p>Convertirnos en la empresa líder en Costa Rica en la importación de acabados de construcción, destacando por la excelencia de nuestros productos, la innovación constante y una atención al cliente basada en confianza y resultados.</p></div>
+    <div class="about-section"><h3>🎯 Misión</h3><p>Brindar acabados de calidad superior, con estándares internacionales, a precios competitivos. En Multiva Group, acompañamos cada proyecto con asesoría especializada, entrega puntual y servicio postventa, enfocados siempre en superar las expectativas de nuestros clientes.</p></div>
+    <div class="about-section"><h3>👥 Quiénes Somos</h3><p>Multiva Group es un equipo multidisciplinario con experiencia en importación, diseño, arquitectura y gestión de proyectos. Somos una empresa multicultural, con presencia local en Costa Rica y alianzas estratégicas en Asia, lo que nos permite combinar visión global con ejecución local.</p><p>Nuestro diferencial es humano: hablamos tu idioma, entendemos tu necesidad y respondemos con soluciones reales.</p><p><em>(Foto del equipo próximamente)</em></p></div>
+    <div class="about-section"><h3>📍 Ubicación y Contacto</h3><p><strong>Showroom y oficinas:</strong><br>Oficentro Santa María 2B, Alajuela, Costa Rica<br>(Entre el Casino Fiesta y el Hotel Hampton Inn)<br>A tan solo 5 minutos del Aeropuerto Internacional Juan Santamaría.</p><p>¿Querés asesoría, una cotización o más información? Visita nuestra página web. Si tenés un proyecto en desarrollo, podés adjuntar planos e ideas. En menos de 24 h te contactaremos con una propuesta personalizada.</p></div>
+</div>
+<footer class="main-footer"><p>© 2025 Multiva. Todos los derechos reservados.</p></footer>
+<script>document.getElementById('nav-toggle').addEventListener('click', function() { document.getElementById('main-nav-links').classList.toggle('is-open'); });</script>
+</body>
+</html>
+--- START OF FILE preguntas_frecuentes.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preguntas Frecuentes - Multiva</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="main-header">
+    <a href="index.html"><img src="images/logo.png" alt="Logo Multiva" class="logo"></a>
+    <button class="nav-toggle-btn" id="nav-toggle"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+    <nav class="main-nav" id="main-nav-links">
+        <a href="index.html">Inicio</a>
+        <div class="dropdown"><a href="#">Catálogo</a><div class="dropdown-content"><a href="cemento.html">Cemento</a><a href="#">Bloques y Ladrillos</a><a href="#">Varillas y Acero</a><a href="#">Herramientas</a><a href="#">Madera</a><a href="#">Acabados</a></div></div>
+        <a href="descuentos.html">Descuentos</a>
+        <a href="preguntas_frecuentes.html">Preguntas Frecuentes</a>
+        <a href="acerca_de_la_empresa.html">Acerca de la empresa</a>
+        <a href="ayuda.html">Ayuda</a>
+        <div class="dropdown"><a href="#">Mi Cuenta</a><div class="dropdown-content"><a href="inicio_sesion_cliente.html">Iniciar Sesión</a><a href="crear_nueva_cuenta.html">Registrarse</a><hr style="border-color: #4a515f;"><a href="perfil_administrador.html">Panel Administrador</a></div></div>
+        <a href="carrito.html"><img src="images/carrito.png" alt="Carrito" style="height: 24px; vertical-align: middle;"></a>
+    </nav>
+</header>
+<div class="container">
+    <h2>Preguntas Frecuentes</h2>
+    <div class="faq-accordion">
+        <div class="faq-item"><button class="faq-question">💬 ¿Cómo puedo comprar?</button><div class="faq-answer"><p>Es muy sencillo. Sigue estos pasos:</p><ol><li>Visita nuestro catálogo en la página web.</li><li>Selecciona los artículos que deseas y solicita una cotización.</li><li>Un ejecutivo de ventas especializado te contactará para confirmar detalles.</li><li>Coordinaremos la entrega, diseño o asesoría técnica según tu necesidad.</li><li>Recibe productos de calidad superior directamente desde fábrica.</li></ol></div></div>
+        <div class="faq-item"><button class="faq-question">🧰 ¿Qué productos y servicios ofrecen?</button><div class="faq-answer"><p>Ofrecemos una línea completa de acabados para interiores y exteriores, tanto en stock como personalizados, incluyendo:</p><ul><li>Cocinas modulares importadas</li><li>Materiales para pisos y cielo rasos</li><li>Materiales eléctricos certificados</li><li>Tubería certificada</li></ul></div></div>
+        <div class="faq-item"><button class="faq-question">🛠 ¿Realizan acabados personalizados?</button><div class="faq-answer"><p>¡Sí! Diseñamos productos a la medida del cliente. El proceso es:</p><ol><li>Sube tu plano 2D o 3D mediante el formulario web en la sección de cotización.</li><li>Elige el estilo (moderno, rústico, europeo…) y los materiales que prefieras.</li><li>En menos de 24 horas, un asesor especializado te contactará para desarrollar una cotización técnica y visual.</li></ol><p>Convertimos tu idea en una solución real, funcional y bella, con garantía de calidad.</p></div></div>
+        <div class="faq-item"><button class="faq-question">🚚 ¿Cómo funcionan los envíos y entregas?</button><div class="faq-answer"><ul><li><strong>Gratis en Alajuela (radio de 20 km).</strong></li><li>Entregas a San José, Cartago y otras provincias mediante rutas programadas con un costo adicional.</li><li>Para envíos al resto del país, se negocian tarifas o se aplican condiciones de exoneración según el volumen de la compra.</li><li>Para proyectos de gran escala (constructoras, residenciales), ofrecemos entregas directas desde China bajo pedido.</li></ul><p><strong>Ejemplo:</strong> un pedido mayor a ₡300.000 podría recibir envío gratuito incluso fuera del GAM.</p></div></div>
+        <div class="faq-item"><button class="faq-question">🔒 ¿Cuál es su política de garantía y devoluciones?</button><div class="faq-answer"><p>Nuestra calidad es verificada desde el origen y confirmada en destino. Ofrecemos:</p><ul><li><strong>Garantía contra defectos de fábrica:</strong> De 3 meses a 1 año, dependiendo del producto.</li><li><strong>Productos personalizados:</strong> No admiten devolución una vez que la producción ha sido aprobada por el cliente.</li></ul><p>Todos nuestros productos pasan por procesos de control de calidad exigentes antes de ser entregados.</p></div></div>
+        <div class="faq-item"><button class="faq-question">💳 ¿Qué formas de pago aceptan?</button><div class="faq-answer"><p>Aceptamos las siguientes formas de pago:</p><ul><li>Transferencia bancaria SINPE (Colones y Dólares).</li><li>Transferencias internacionales (para proyectos de gran escala y pedidos especiales).</li></ul></div></div>
+        <div class="faq-item"><button class="faq-question">📑 ¿Sus productos tienen certificaciones de calidad?</button><div class="faq-answer"><p>Sí. Competimos por calidad. Nuestros productos cuentan con certificaciones internacionales como:</p><ul><li><strong>UL (Underwriters Laboratories)</strong> para productos eléctricos.</li><li><strong>Norma 6</strong> para sistemas de tubería.</li><li>Protocolos de fabricación auditados directamente en origen.</li></ul><p>Tenemos muestras y documentación técnica disponible para arquitectos, ingenieros y desarrolladores.</p></div></div>
+    </div>
+</div>
+<footer class="main-footer"><p>© 2025 Multiva. Todos los derechos reservados.</p></footer>
+<script>
+    document.getElementById('nav-toggle').addEventListener('click', function() { document.getElementById('main-nav-links').classList.toggle('is-open'); });
+    const faqQuestions = document.querySelectorAll('.faq-question');
+    faqQuestions.forEach(button => { button.addEventListener('click', () => { const answer = button.nextElementSibling; button.classList.toggle('active'); if (button.classList.contains('active')) { answer.style.maxHeight = answer.scrollHeight + 'px'; } else { answer.style.maxHeight = 0; } }); });
+</script>
+</body>
+</html>
+--- START OF FILE ayuda.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Ayuda</title>
+    <link rel="stylesheet" href="style.css">
+    <style>.chat-box { height: 400px; overflow-y: auto; padding: 1rem; background: #fff; border: 1px solid var(--border-color); margin-bottom: 1rem; border-radius: 5px; } .chat-message { margin: 0.5rem 0; padding: 0.75rem; border-radius: 10px; max-width: 80%; line-height: 1.4; } .user-message { text-align: left; background-color: var(--primary-color); color: var(--white); margin-left: auto; } .bot-message { text-align: left; background-color: #f1f1f1; } .input-area { display: flex; gap: 0.5rem; } .input-area input { flex-grow: 1; }</style>
+</head>
+<body>
+<header class="main-header">
+    <a href="index.html"><img src="images/logo.png" alt="Logo Multiva" class="logo"></a>
+    <button class="nav-toggle-btn" id="nav-toggle"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+    <nav class="main-nav" id="main-nav-links">
+        <a href="index.html">Inicio</a>
+        <div class="dropdown"><a href="#">Catálogo</a><div class="dropdown-content"><a href="cemento.html">Cemento</a><a href="#">Bloques y Ladrillos</a><a href="#">Varillas y Acero</a><a href="#">Herramientas</a><a href="#">Madera</a><a href="#">Acabados</a></div></div>
+        <a href="descuentos.html">Descuentos</a>
+        <a href="preguntas_frecuentes.html">Preguntas Frecuentes</a>
+        <a href="acerca_de_la_empresa.html">Acerca de la empresa</a>
+        <a href="ayuda.html">Ayuda</a>
+        <div class="dropdown"><a href="#">Mi Cuenta</a><div class="dropdown-content"><a href="inicio_sesion_cliente.html">Iniciar Sesión</a><a href="crear_nueva_cuenta.html">Registrarse</a><hr style="border-color: #4a515f;"><a href="perfil_administrador.html">Panel Administrador</a></div></div>
+        <a href="carrito.html"><img src="images/carrito.png" alt="Carrito" style="height: 24px; vertical-align: middle;"></a>
+    </nav>
+</header>
+<div class="container">
+    <h2>🤖 Multiva Assist - Centro de Ayuda</h2>
+    <div id="chat" class="chat-box" style="margin-top: 2rem;">
+        <div class="chat-message bot-message">Hola 👋, soy <strong>Multiva Assist</strong>. Estoy aquí para resolver cualquier duda que tengas sobre nuestros productos, servicios o procesos de compra. ¿En qué te puedo ayudar?</div>
+    </div>
+    <div class="input-area">
+        <input type="text" id="entrada" placeholder="Escribí tu pregunta..." onkeydown="if(event.key==='Enter')enviarMensaje()"/>
+        <button class="btn btn-primary" onclick="enviarMensaje()">Enviar</button>
+    </div>
+</div>
+<footer class="main-footer"><p>© 2025 Multiva. Todos los derechos reservados.</p></footer>
+<script>
+    document.getElementById('nav-toggle').addEventListener('click', function() { document.getElementById('main-nav-links').classList.toggle('is-open'); });
+    function enviarMensaje() {
+        const input = document.getElementById("entrada"); const mensaje = input.value.trim().toLowerCase(); if (!mensaje) return;
+        const chat = document.getElementById("chat"); const userMsg = document.createElement("div");
+        userMsg.className = "chat-message user-message"; userMsg.textContent = input.value; chat.appendChild(userMsg);
+        let respuesta = "Gracias por tu pregunta. Un agente se pondrá en contacto contigo. También puedes visitar nuestra sección de <a href='preguntas_frecuentes.html'>Preguntas Frecuentes</a>.";
+        if (mensaje.includes("envío") || mensaje.includes("entrega")) { respuesta = "Realizamos envíos a todo el país. El costo y tiempo dependen de la zona. Para más detalles, por favor visita nuestra sección de <a href='preguntas_frecuentes.html'>Preguntas Frecuentes</a>."; }
+        else if (mensaje.includes("pago") || mensaje.includes("pagar")) { respuesta = "Aceptamos transferencias bancarias SINPE. Encontrarás los detalles durante el proceso de cotización. ¿Tienes otra duda?"; }
+        else if (mensaje.includes("garantía")) { respuesta = "Todos nuestros productos tienen garantía contra defectos de fábrica. El período varía según el producto. Puedes consultar más en nuestras <a href='preguntas_frecuentes.html'>Preguntas Frecuentes</a>."; }
+        setTimeout(() => { const botMsg = document.createElement("div"); botMsg.className = "chat-message bot-message"; botMsg.innerHTML = respuesta; chat.appendChild(botMsg); chat.scrollTop = chat.scrollHeight; }, 1000);
+        chat.scrollTop = chat.scrollHeight; input.value = "";
+    }
+</script>
+</body>
+</html>
+--- START OF FILE descuentos.html ---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Descuentos - Multiva</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="main-header">
+    <a href="index.html"><img src="images/logo.png" alt="Logo Multiva" class="logo"></a>
+    <button class="nav-toggle-btn" id="nav-toggle"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+    <nav class="main-nav" id="main-nav-links">
+        <a href="index.html">Inicio</a>
+        <div class="dropdown"><a href="#">Catálogo</a><div class="dropdown-content"><a href="cemento.html">Cemento</a><a href="#">Bloques y Ladrillos</a><a href="#">Varillas y Acero</a><a href="#">Herramientas</a><a href="#">Madera</a><a href="#">Acabados</a></div></div>
+        <a href="descuentos.html">Descuentos</a>
+        <a href="preguntas_frecuentes.html">Preguntas Frecuentes</a>
+        <a href="acerca_de_la_empresa.html">Acerca de la empresa</a>
+        <a href="ayuda.html">Ayuda</a>
+        <div class="dropdown"><a href="#">Mi Cuenta</a><div class="dropdown-content"><a href="inicio_sesion_cliente.html">Iniciar Sesión</a><a href="crear_nueva_cuenta.html">Registrarse</a><hr style="border-color: #4a515f;"><a href="perfil_administrador.html">Panel Administrador</a></div></div>
+        <a href="carrito.html"><img src="images/carrito.png" alt="Carrito" style="height: 24px; vertical-align: middle;"></a>
+    </nav>
+</header>
+<div class="container">
+  <h2>Ofertas Especiales</h2>
+  <div class="productos">
+    <div class="producto">
+      <div class="discount-tag">15% OFF</div>
+      <img src="images/martillo.png" alt="Martillo con descuento">
+      <h3>Martillo</h3>
+      <div class="price-container">
+        <span class="original-price">₡4,500</span>
+        <span class="discounted-price">₡3,825</span>
+      </div>
+      <p class="min-purchase">Mínimo: 1 unidad</p>
+      <div class="quantity-selector"><input type="number" id="cantidad1" min="1" value="1"></div>
+      <button class="btn add-to-cart-btn">Agregar al carrito</button>
+      <div class="producto-detalles"><h4>Descripción:</h4><p>Martillo de uña con mango de fibra de vidrio, ideal para trabajos de carpintería y construcción general.</p><h4>Especificaciones:</h4><p>Peso: 16oz, Material: Acero forjado de alta resistencia.</p></div>
+    </div>
+    <div class="producto">
+      <div class="discount-tag">10% OFF</div>
+      <img src="images/cemento1.png" alt="Saco de cemento con descuento">
+      <h3>Cemento gris tipo I</h3>
+       <div class="price-container">
+        <span class="original-price">₡5,200</span>
+        <span class="discounted-price">₡4,680</span>
+      </div>
+      <p class="min-purchase">Mínimo: 10 unidades</p>
+      <div class="quantity-selector"><input type="number" id="cantidad2" min="10" value="10"></div>
+      <button class="btn add-to-cart-btn">Agregar al carrito</button>
+      <div class="producto-detalles"><h4>Descripción:</h4><p>Cemento Portland de uso general, ideal para concretos, morteros y todo tipo de construcción.</p><h4>Especificaciones:</h4><p>Peso: 50kg. Resistencia a 28 días: 42.5 N/mm².</p></div>
+    </div>
+  </div>
+  <div style="text-align: center; margin-top: 2rem;"><a href="carrito.html" class="btn btn-warning" style="font-size: 1.2rem;">🛒 Ir al carrito</a></div>
+</div>
+<footer class="main-footer"><p>© 2025 Multiva. Todos los derechos reservados.</p></footer>
+<script>document.getElementById('nav-toggle').addEventListener('click', function() { document.getElementById('main-nav-links').classList.toggle('is-open'); });</script>
+</body>
+</html>

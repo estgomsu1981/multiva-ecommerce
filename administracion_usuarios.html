@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Administrar Usuarios</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" style="max-width: 1200px;">
+    <h2>Administrar Usuarios</h2>
+    <div class="table-responsive-wrapper">
+        <table>
+            <thead><tr><th>Nombre</th><th>Apellido</th><th>Correo</th><th>Usuario</th><th>Dirección</th><th>Categoría Cliente</th><th>Tipo Usuario</th><th>Acciones</th></tr></thead>
+            <tbody>
+                <tr><td>Christian</td><td>Arias</td><td>chrismorel@hotmail.com</td><td>carias</td><td>San José, Costa Rica</td><td><select class="categoria-cliente" disabled><option selected>Regular</option><option>Frecuente</option></select></td><td><select class="tipo-usuario" disabled><option selected>Cliente</option><option>Administrador</option></select></td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <a href="perfil_administrador.html" class="btn btn-secondary" style="margin-top: 1.5rem;">Volver al Panel</a>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const table = document.querySelector('table');
+        table.addEventListener('click', function(e) {
+            if (e.target.classList.contains('eliminar-btn')) {
+                if (confirm('¿Estás seguro de que deseas eliminar este usuario?')) { e.target.closest('tr').remove(); }
+            }
+            if (e.target.classList.contains('editar-btn')) {
+                const row = e.target.closest('tr');
+                const selects = row.querySelectorAll("select");
+                const cellsToEdit = Array.from(row.children).slice(0, 5); 
+                if (e.target.textContent === "Editar") {
+                    cellsToEdit.forEach(td => {
+                        const input = document.createElement("input");
+                        input.type = "text";
+                        input.value = td.textContent;
+                        td.textContent = "";
+                        td.appendChild(input);
+                    });
+                    selects.forEach(sel => sel.disabled = false);
+                    e.target.textContent = "Guardar";
+                    e.target.classList.replace('btn-primary', 'btn-success');
+                } else {
+                    cellsToEdit.forEach(td => { if (td.firstChild && td.firstChild.tagName === "INPUT") { td.textContent = td.firstChild.value; } });
+                    selects.forEach(sel => sel.disabled = true);
+                    e.target.textContent = "Editar";
+                    e.target.classList.replace('btn-success', 'btn-primary');
+                }
+            }
+        });
+    });
+</script>
+</body>
+</html>

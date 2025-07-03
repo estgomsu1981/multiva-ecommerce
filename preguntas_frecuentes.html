@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Preguntas Frecuentes - Multiva</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="main-header">
+    <a href="index.html"><img src="images/logo.png" alt="Logo Multiva" class="logo"></a>
+    <button class="nav-toggle-btn" id="nav-toggle"><span class="hamburger-line"></span><span class="hamburger-line"></span><span class="hamburger-line"></span></button>
+    <nav class="main-nav" id="main-nav-links">
+        <a href="index.html">Inicio</a>
+        <div class="dropdown"><a href="#">Catálogo</a><div class="dropdown-content"><a href="cemento.html">Cemento</a><a href="#">Bloques y Ladrillos</a><a href="#">Varillas y Acero</a><a href="#">Herramientas</a><a href="#">Madera</a><a href="#">Acabados</a></div></div>
+        <a href="descuentos.html">Descuentos</a>
+        <a href="preguntas_frecuentes.html">Preguntas Frecuentes</a>
+        <a href="acerca_de_la_empresa.html">Acerca de la empresa</a>
+        <a href="ayuda.html">Ayuda</a>
+        <div class="dropdown"><a href="#">Mi Cuenta</a><div class="dropdown-content"><a href="inicio_sesion_cliente.html">Iniciar Sesión</a><a href="crear_nueva_cuenta.html">Registrarse</a><hr style="border-color: #4a515f;"><a href="perfil_administrador.html">Panel Administrador</a></div></div>
+        <a href="carrito.html"><img src="images/carrito.png" alt="Carrito" style="height: 24px; vertical-align: middle;"></a>
+    </nav>
+</header>
+<div class="container">
+    <h2>Preguntas Frecuentes</h2>
+    <div class="faq-accordion">
+        <div class="faq-item"><button class="faq-question">💬 ¿Cómo puedo comprar?</button><div class="faq-answer"><p>Es muy sencillo. Sigue estos pasos:</p><ol><li>Visita nuestro catálogo en la página web.</li><li>Selecciona los artículos que deseas y solicita una cotización.</li><li>Un ejecutivo de ventas especializado te contactará para confirmar detalles.</li><li>Coordinaremos la entrega, diseño o asesoría técnica según tu necesidad.</li><li>Recibe productos de calidad superior directamente desde fábrica.</li></ol></div></div>
+        <div class="faq-item"><button class="faq-question">🧰 ¿Qué productos y servicios ofrecen?</button><div class="faq-answer"><p>Ofrecemos una línea completa de acabados para interiores y exteriores, tanto en stock como personalizados, incluyendo:</p><ul><li>Cocinas modulares importadas</li><li>Materiales para pisos y cielo rasos</li><li>Materiales eléctricos certificados</li><li>Tubería certificada</li></ul></div></div>
+        <div class="faq-item"><button class="faq-question">🛠 ¿Realizan acabados personalizados?</button><div class="faq-answer"><p>¡Sí! Diseñamos productos a la medida del cliente. El proceso es:</p><ol><li>Sube tu plano 2D o 3D mediante el formulario web en la sección de cotización.</li><li>Elige el estilo (moderno, rústico, europeo…) y los materiales que prefieras.</li><li>En menos de 24 horas, un asesor especializado te contactará para desarrollar una cotización técnica y visual.</li></ol><p>Convertimos tu idea en una solución real, funcional y bella, con garantía de calidad.</p></div></div>
+        <div class="faq-item"><button class="faq-question">🚚 ¿Cómo funcionan los envíos y entregas?</button><div class="faq-answer"><ul><li><strong>Gratis en Alajuela (radio de 20 km).</strong></li><li>Entregas a San José, Cartago y otras provincias mediante rutas programadas con un costo adicional.</li><li>Para envíos al resto del país, se negocian tarifas o se aplican condiciones de exoneración según el volumen de la compra.</li><li>Para proyectos de gran escala (constructoras, residenciales), ofrecemos entregas directas desde China bajo pedido.</li></ul><p><strong>Ejemplo:</strong> un pedido mayor a ₡300.000 podría recibir envío gratuito incluso fuera del GAM.</p></div></div>
+        <div class="faq-item"><button class="faq-question">🔒 ¿Cuál es su política de garantía y devoluciones?</button><div class="faq-answer"><p>Nuestra calidad es verificada desde el origen y confirmada en destino. Ofrecemos:</p><ul><li><strong>Garantía contra defectos de fábrica:</strong> De 3 meses a 1 año, dependiendo del producto.</li><li><strong>Productos personalizados:</strong> No admiten devolución una vez que la producción ha sido aprobada por el cliente.</li></ul><p>Todos nuestros productos pasan por procesos de control de calidad exigentes antes de ser entregados.</p></div></div>
+        <div class="faq-item"><button class="faq-question">💳 ¿Qué formas de pago aceptan?</button><div class="faq-answer"><p>Aceptamos las siguientes formas de pago:</p><ul><li>Transferencia bancaria SINPE (Colones y Dólares).</li><li>Transferencias internacionales (para proyectos de gran escala y pedidos especiales).</li></ul></div></div>
+        <div class="faq-item"><button class="faq-question">📑 ¿Sus productos tienen certificaciones de calidad?</button><div class="faq-answer"><p>Sí. Competimos por calidad. Nuestros productos cuentan con certificaciones internacionales como:</p><ul><li><strong>UL (Underwriters Laboratories)</strong> para productos eléctricos.</li><li><strong>Norma 6</strong> para sistemas de tubería.</li><li>Protocolos de fabricación auditados directamente en origen.</li></ul><p>Tenemos muestras y documentación técnica disponible para arquitectos, ingenieros y desarrolladores.</p></div></div>
+    </div>
+</div>
+<footer class="main-footer"><p>© 2025 Multiva. Todos los derechos reservados.</p></footer>
+<script>
+    document.getElementById('nav-toggle').addEventListener('click', function() { document.getElementById('main-nav-links').classList.toggle('is-open'); });
+    const faqQuestions = document.querySelectorAll('.faq-question');
+    faqQuestions.forEach(button => { button.addEventListener('click', () => { const answer = button.nextElementSibling; button.classList.toggle('active'); if (button.classList.contains('active')) { answer.style.maxHeight = answer.scrollHeight + 'px'; } else { answer.style.maxHeight = 0; } }); });
+</script>
+</body>
+</html>

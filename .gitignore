@@ -1,0 +1,19 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Node / React
+node_modules/
+build/
+.pnp
+.pnp.js
+
+# Archivos de entorno (¡MUY IMPORTANTE!)
+.env
+.env.*
+
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Productos</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container" style="max-width: 1400px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="text-align: left; margin: 0;">Listado de Productos</h2>
+        <button id="btn-mostrar-form-crear" class="btn btn-success">Crear Nuevo Producto</button>
+    </div>
+    <div id="form-crear-producto" style="display: none; background-color: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+        <h3 style="margin-top: 0;">Nuevo Producto</h3>
+        <form id="crear-producto-form">
+            <label>Nombre: <input type="text" name="nombre" required></label>
+            <label>Categoría: <select name="categoria" required></select></label>
+            <label>Descripción: <textarea name="descripcion" rows="2"></textarea></label>
+            <label>Especificación: <textarea name="especificacion" rows="2"></textarea></label>
+            <label>Precio: <input type="number" name="precio" required></label>
+            <label>Mínimo Compra: <input type="number" name="minimo" required></label>
+            <label>Descuento (%): <input type="number" name="descuento" value="0"></label>
+            <label>Imagen: <input type="file" name="imagen" accept="image/*"></label>
+            <div><button type="submit" class="btn btn-success">Añadir Producto</button><button type="button" id="btn-cancelar-crear" class="btn btn-secondary">Cancelar</button></div>
+        </form>
+    </div>
+    <div class="table-responsive-wrapper">
+        <table id="tabla-productos">
+            <thead>
+                <tr><th>ID</th><th>Nombre</th><th>Categoría</th><th>Descripción</th><th>Especificación</th><th>Precio</th><th>Mínimo Compra</th><th>Descuento (%)</th><th>Imagen</th><th>Acciones</th></tr>
+            </thead>
+            <tbody>
+                <tr><td>001</td><td>Taladro</td><td>Herramientas</td><td>Potente taladro percutor de 18V.</td><td>Voltaje: 18V, Batería: 2Ah</td><td>12000</td><td>2</td><td>0</td><td>taladro.jpg</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+                <tr><td>002</td><td>Cemento gris tipo I</td><td>Materiales</td><td>Cemento gris de uso general.</td><td>Tipo: Portland, Peso: 50kg</td><td>5200</td><td>10</td><td>10</td><td>cemento1.png</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+                <tr><td>003</td><td>Martillo</td><td>Herramientas</td><td>Martillo de uña con mango de fibra de vidrio.</td><td>Peso: 16oz, Material: Acero forjado</td><td>4500</td><td>1</td><td>15</td><td>martillo.png</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <a href="perfil_administrador.html" class="btn btn-secondary" style="margin-top: 1.5rem;">Volver al Panel</a>
+</div>
+<div id="data-categorias" style="display: none;"><span data-id="001">Herramientas</span><span data-id="002">Materiales</span><span data-id="003">Pisos y Acabados</span><span data-id="004">Electricidad</span></div>
+<script>
+    const formCrearProducto = document.getElementById('form-crear-producto');
+    const btnMostrarFormProducto = document.getElementById('btn-mostrar-form-crear');
+    const btnCancelarCrearProducto = document.getElementById('btn-cancelar-crear');
+    const tablaProductos = document.getElementById('tabla-productos').getElementsByTagName('tbody')[0];
+    const formProducto = document.getElementById('crear-producto-form');
+    const categoriasDisponibles = Array.from(document.querySelectorAll('#data-categorias span')).map(span => span.textContent);
+    function poblarSelectCategorias(selectElement, valorActual = null) {
+        selectElement.innerHTML = '';
+        categoriasDisponibles.forEach(cat => {
+            const option = document.createElement('option');
+            option.value = cat;
+            option.textContent = cat;
+            if (cat === valorActual) { option.selected = true; }
+            selectElement.appendChild(option);
+        });
+    }
+    poblarSelectCategorias(document.querySelector('#crear-producto-form select[name="categoria"]'));
+    btnMostrarFormProducto.addEventListener('click', () => { formCrearProducto.style.display = 'block'; });
+    btnCancelarCrearProducto.addEventListener('click', () => { formCrearProducto.style.display = 'none'; formProducto.reset(); });
+    formProducto.addEventListener('submit', function (e) {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        const newId = (Math.random() * 1000).toFixed(0).padStart(3, '0');
+        const imagenFile = formData.get('imagen');
+        const imagenNombre = imagenFile ? imagenFile.name : 'N/A';
+        const newRow = tablaProductos.insertRow();
+        newRow.innerHTML = `<td>${newId}</td><td>${formData.get('nombre')}</td><td>${formData.get('categoria')}</td><td>${formData.get('descripcion')}</td><td>${formData.get('especificacion')}</td><td>${formData.get('precio')}</td><td>${formData.get('minimo')}</td><td>${formData.get('descuento')}</td><td>${imagenNombre}</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td>`;
+        e.target.reset();
+        formCrearProducto.style.display = 'none';
+    });
+    tablaProductos.addEventListener('click', function(e) {
+        if (e.target.classList.contains('eliminar-btn')) {
+            if (confirm('¿Estás seguro de que deseas eliminar este producto?')) { e.target.closest('tr').remove(); }
+        }
+        if (e.target.classList.contains('editar-btn')) {
+            const row = e.target.closest('tr');
+            const cellsToEdit = Array.from(row.children).slice(1, 8); 
+            if (e.target.textContent === 'Editar') {
+                cellsToEdit.forEach((cell, index) => {
+                    const currentValue = cell.textContent;
+                    if (index === 1) { 
+                        const select = document.createElement('select');
+                        poblarSelectCategorias(select, currentValue);
+                        cell.innerHTML = '';
+                        cell.appendChild(select);
+                    } else {
+                        cell.innerHTML = `<input type="text" value="${currentValue}" style="width: 100%;">`;
+                    }
+                });
+                e.target.textContent = 'Guardar';
+                e.target.classList.replace('btn-primary', 'btn-success');
+            } else {
+                cellsToEdit.forEach((cell) => {
+                    cell.textContent = cell.querySelector('input, select').value;
+                });
+                e.target.textContent = 'Editar';
+                e.target.classList.replace('btn-success', 'btn-primary');
+            }
+        }
+    });
+</script>
+</body>
+</html>

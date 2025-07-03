@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Listado de Categorías</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="text-align: left; margin: 0;">Listado de Categorías</h2>
+        <button id="btn-mostrar-form-crear" class="btn btn-success">Crear Nueva Categoría</button>
+    </div>
+    <div id="form-crear-categoria" style="display: none; background-color: #f9f9f9; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+        <h3 style="margin-top: 0;">Nueva Categoría</h3>
+        <form id="crear-categoria-form">
+            <label>Nombre de Categoría: <input type="text" name="nombre" required></label>
+            <label>Imagen: <input type="file" name="imagen" accept="image/*"></label>
+            <div><button type="submit" class="btn btn-success">Añadir Categoría</button><button type="button" id="btn-cancelar-crear" class="btn btn-secondary">Cancelar</button></div>
+        </form>
+    </div>
+    <div class="table-responsive-wrapper">
+        <table id="tabla-categorias">
+            <thead><tr><th>ID</th><th>Nombre de Categoría</th><th>Imagen</th><th>Acciones</th></tr></thead>
+            <tbody>
+                <tr><td>001</td><td>Herramientas</td><td>herramientas.jpg</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+                <tr><td>002</td><td>Materiales</td><td>materiales.jpg</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td></tr>
+            </tbody>
+        </table>
+    </div>
+    <a href="perfil_administrador.html" class="btn btn-secondary" style="margin-top: 1.5rem;">Volver al Panel</a>
+</div>
+<script>
+    const formCrearCategoria = document.getElementById('form-crear-categoria');
+    const btnMostrarFormCategoria = document.getElementById('btn-mostrar-form-crear');
+    const btnCancelarCrearCategoria = document.getElementById('btn-cancelar-crear');
+    const tablaCategorias = document.getElementById('tabla-categorias').getElementsByTagName('tbody')[0];
+    const formCategoria = document.getElementById('crear-categoria-form');
+    btnMostrarFormCategoria.addEventListener('click', () => { formCrearCategoria.style.display = 'block'; });
+    btnCancelarCrearCategoria.addEventListener('click', () => { formCrearCategoria.style.display = 'none'; formCategoria.reset(); });
+    formCategoria.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nombreCategoria = e.target.elements.nombre.value;
+        const imagenFile = e.target.elements.imagen.files[0];
+        const imagenNombre = imagenFile ? imagenFile.name : 'N/A';
+        const newId = (Math.random() * 1000).toFixed(0).padStart(3, '0');
+        const newRow = tablaCategorias.insertRow();
+        newRow.innerHTML = `<td>${newId}</td><td>${nombreCategoria}</td><td>${imagenNombre}</td><td><button class="btn btn-primary btn-sm editar-btn">Editar</button><button class="btn btn-danger btn-sm eliminar-btn">Eliminar</button></td>`;
+        formCategoria.reset();
+        formCrearCategoria.style.display = 'none';
+    });
+    tablaCategorias.addEventListener('click', function (e) {
+        if (e.target.classList.contains('eliminar-btn')) { if (confirm('¿Estás seguro de que deseas eliminar esta categoría?')) { e.target.closest('tr').remove(); } }
+        if (e.target.classList.contains('editar-btn')) {
+            const row = e.target.closest('tr');
+            const cellNombre = row.children[1]; 
+            if (e.target.textContent === 'Editar') {
+                const currentName = cellNombre.textContent;
+                cellNombre.innerHTML = `<input type="text" value="${currentName}" style="width: 100%;">`;
+                e.target.textContent = 'Guardar';
+                e.target.classList.replace('btn-primary', 'btn-success');
+            } else {
+                const input = cellNombre.querySelector('input');
+                cellNombre.textContent = input.value;
+                e.target.textContent = 'Editar';
+                e.target.classList.replace('btn-success', 'btn-primary');
+            }
+        }
+    });
+</script>
+</body>
+</html>

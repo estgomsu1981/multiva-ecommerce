@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Gestión de Descuento Cliente Frecuente</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="container">
+    <h2 style="text-align: left; margin-bottom: 2rem;">Gestión de Descuento Cliente Frecuente</h2>
+
+    <div style="background-color: #f9f9f9; padding: 1.5rem; border-radius: 8px;">
+        <h3 style="text-align: left; margin-top: 0;">Descuento para Cliente Frecuente</h3>
+        <p>Aplica un descuento general a todos los clientes marcados como "Frecuentes". Este porcentaje se aplicará sobre el total de sus compras.</p>
+        <div id="form-descuento-frecuente" style="margin-top: 1rem; max-width: 400px;">
+            <form onsubmit="guardarDescuentoFrecuente(event)">
+                <label for="porcentaje-descuento">Porcentaje de Descuento (%):</label>
+                <div style="display: flex; gap: 1rem;">
+                    <input id="porcentaje-descuento" max="100" min="0" step="1" type="number" placeholder="Ej: 5" required/>
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <a href="perfil_administrador.html" class="btn btn-secondary" style="margin-top: 2rem;">Volver al Panel</a>
+</div>
+<script>
+    function guardarDescuentoFrecuente(event) {
+        event.preventDefault();
+        const valor = document.getElementById('porcentaje-descuento').value;
+        if (valor === '' || isNaN(valor) || valor < 0 || valor > 100) {
+            alert('Por favor, ingrese un número válido entre 0 y 100.');
+            return;
+        }
+        // Aquí iría la lógica para guardar el valor en el backend
+        alert('Descuento para cliente frecuente guardado: ' + valor + '%');
+    }
+</script>
+</body>
+</html>
