@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from . import models, schemas
+from . import models, schemas, security 
 
 # LEER una categoría por su ID
 def get_category(db: Session, category_id: int):
@@ -38,3 +38,24 @@ def delete_category(db: Session, category_id: int):
         db.delete(db_category)
         db.commit()
     return db_category
+
+def get_user_by_email(db: Session, email: str):
+    return db.query(models.User).filter(models.User.email == email).first()
+
+def get_user_by_username(db: Session, username: str):
+    return db.query(models.User).filter(models.User.usuario == username).first()
+
+def create_user(db: Session, user: schemas.UserCreate):
+    hashed_password = security.get_password_hash(user.password)
+    db_user = models.User(
+        email=user.email,
+        usuario=user.usuario,
+        nombre=user.nombre,
+        apellidos=user.apellidos,
+        direccion=user.direccion,
+        hashed_password=hashed_password
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user

@@ -16,3 +16,24 @@ class Category(CategoryBase):
 
     class Config:
         from_attributes = True # Permite que Pydantic lea datos desde modelos SQLAlchemy
+
+# Esquema base con datos comunes
+class UserBase(BaseModel):
+    email: EmailStr  # Pydantic valida que sea un email
+    usuario: str
+    nombre: str
+    apellidos: str
+    direccion: str
+
+# Esquema para la creación de un usuario (recibe la contraseña)
+class UserCreate(UserBase):
+    password: str
+
+# Esquema para la respuesta de la API (NO incluye la contraseña)
+class User(UserBase):
+    id: int
+    categoria_cliente: str
+    tipo_usuario: str
+
+    class Config:
+        from_attributes = True

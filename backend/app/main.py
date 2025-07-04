@@ -82,3 +82,14 @@ async def upload_image(file: UploadFile = File(...)):
         return {"url": secure_url}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al subir el archivo: {str(e)}")
+    
+@app.post("/users/", response_model=schemas.User, tags=["Users"])
+def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    # Verificamos si ya existe un usuario con ese email o nombre de usuario
+    if crud.get_user_by_email(db, email=user.email):
+        raise HTTPException(status_code=400, detail="El correo electrónico ya está registrado")
+    if crud.get_user_by_username(db, username=user.usuario):
+        raise HTTPException(status_code=400, detail="El nombre de usuario ya existe")
+    
+    # Si no existe, lo creamos
+    return crud.create_user(db=db, user=user)
