@@ -1,0 +1,82 @@
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile
+from sqlalchemy.orm import Session
+from typing import List
+from fastapi.middleware.cors import CORSMiddleware
+from .config import configure_cloudinary 
+from . import crud, models, schemas
+from .database import engine, get_db
+
+import cloudinary
+import cloudinary.uploader
+
+configure_cloudinary()
+
+# Esta línea es crucial: crea la tabla en tu base de datos si no existe.
+models.Base.metadata.create_all(bind=engine)
+
+app = FastAPI(title="Multiva API")
+
+origins = [
+    "http://localhost:3000",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,  # Permite estos orígenes
+    allow_credentials=True, # Permite cookies (si las usas en el futuro)
+    allow_methods=["*"],    # Permite todos los métodos (GET, POST, etc.)
+    allow_headers=["*"],    # Permite todos los encabezados
+)
+
+# Endpoint para CREAR una categoría
+@app.post("/categories/", response_model=schemas.Category, tags=["Categories"])
+def create_new_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
+    db_category = crud.get_category_by_name(db, name=category.nombre)
+    if db_category:
+        raise HTTPException(status_code=400, detail="Ya existe una categoría con este nombre")
+    return crud.create_category(db=db, category=category)
+
+# Endpoint para LEER todas las categorías
+@app.get("/categories/", response_model=List[schemas.Category], tags=["Categories"])
+def read_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    categories = crud.get_categories(db, skip=skip, limit=limit)
+    return categories
+
+# Endpoint para LEER una categoría específica por ID
+@app.get("/categories/{category_id}", response_model=schemas.Category, tags=["Categories"])
+def read_category(category_id: int, db: Session = Depends(get_db)):
+    db_category = crud.get_category(db, category_id=category_id)
+    if db_category is None:
+        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+    return db_category
+
+# Endpoint para ACTUALIZAR una categoría
+@app.put("/categories/{category_id}", response_model=schemas.Category, tags=["Categories"])
+def update_existing_category(category_id: int, category: schemas.CategoryCreate, db: Session = Depends(get_db)):
+    db_category = crud.update_category(db, category_id=category_id, category_details=category)
+    if db_category is None:
+        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+    return db_category
+
+# Endpoint para BORRAR una categoría
+@app.delete("/categories/{category_id}", response_model=schemas.Category, tags=["Categories"])
+def delete_existing_category(category_id: int, db: Session = Depends(get_db)):
+    db_category = crud.delete_category(db, category_id=category_id)
+    if db_category is None:
+        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+    return db_category
+
+@app.post("/upload", tags=["Utilities"])
+async def upload_image(file: UploadFile = File(...)):
+    """
+    Este endpoint recibe un archivo y lo sube a Cloudinary.
+    Devuelve la URL segura del archivo subido.
+    """
+    try:
+        # Sube el archivo a Cloudinary
+        result = cloudinary.uploader.upload(file.file, folder="multiva_ecommerce")
+        # Obtenemos la URL segura del resultado
+        secure_url = result.get("secure_url")
+        return {"url": secure_url}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al subir el archivo: {str(e)}")
