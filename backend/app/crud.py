@@ -59,3 +59,17 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
+def authenticate_user(db: Session, username: str, password: str):
+    # Primero, intentamos buscar por nombre de usuario
+    user = get_user_by_username(db, username=username)
+    
+    # Si no se encuentra, intentamos buscar por correo electrónico
+    if not user:
+        user = get_user_by_email(db, email=username)
+    
+    # Si después de ambas búsquedas no hay usuario, o si la contraseña no coincide, fallamos
+    if not user or not security.verify_password(password, user.hashed_password):
+        return False
+        
+    # Si todo es correcto, devolvemos el objeto del usuario
+    return user
