@@ -99,20 +99,17 @@ def register_user(user: schemas.UserCreate, db: Session = Depends(get_db)):
 
 @app.post("/token", response_model=schemas.Token, tags=["Users"])
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
-    # Usamos nuestra nueva y más inteligente función de autenticación
-    user = crud.authenticate_user(db, username=form_data.username, password=form_data.password)
-    
-    if not user:
+    user = crud.get_user_by_username(db, username=form_data.username)
+    if not user or not security.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=401,
             detail="Nombre de usuario o contraseña incorrectos",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # El resto de la función para crear el token permanece igual
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = security.create_access_token(
-        data={"sub": user.usuario}, expires_delta=access_token_expires
+        data={"sub": user.usuario, "nombre": user.nombre}, expires_delta=access_token_expires
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
