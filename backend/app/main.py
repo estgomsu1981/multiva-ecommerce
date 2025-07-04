@@ -17,7 +17,9 @@ models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title="Multiva API")
 
 origins = [
-    "http://localhost:3000",
+    "http://localhost:3000",          # <-- AÑADE ESTA LÍNEA (para desarrollo local del frontend)
+    "https://multiva-api.onrender.com", # Tu API en producción (para la documentación)
+    # En el futuro aquí irá la URL de Netlify
 ]
 
 app.add_middleware(
