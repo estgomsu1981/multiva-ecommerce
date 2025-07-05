@@ -211,7 +211,7 @@ const GestionCategorias = () => {
                     </tbody>
                 </table>
             </div>
-            <Link to="/admin/panel" className="btn btn-secondary" style={{ marginTop: '1.5rem' }}>
+            <Link to="/admin/panel" className="admin-menu-action admin-return-button">
                 Volver al Panel de Administrador
             </Link>
         </div>

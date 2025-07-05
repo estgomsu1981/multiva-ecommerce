@@ -6,6 +6,7 @@ import RegistroPage from './pages/RegistroPage';
 import LoginPage from './pages/LoginPage'; 
 import AdminPanelPage from './pages/AdminPanelPage'; 
 import GestionCategorias from './pages/GestionCategorias'; 
+import GestionUsuarios from './pages/GestionUsuarios'; 
 
 import './style.css';
 
@@ -22,6 +23,7 @@ function App() {
                 {/* Rutas de Administración */}
                 <Route path="/admin/panel" element={<AdminPanelPage />} />
                 <Route path="/admin/categorias" element={<GestionCategorias />} />
+                <Route path="/admin/usuarios" element={<GestionUsuarios />} /> 
             </Routes>
         </Router>
     );

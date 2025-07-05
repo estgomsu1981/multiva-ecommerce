@@ -77,7 +77,7 @@ const HomePage = () => {
                     
                     {/* Renderizado condicional del panel de administrador */}
                     {user && user.rol === 'Administrador' && (
-                        <a href="/admin/panel">Panel Administrador</a>
+                        <a href="/admin/panel">Panel de Administrador</a>
                     )}
 
                     <div className="dropdown">
