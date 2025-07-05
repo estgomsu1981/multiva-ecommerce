@@ -140,3 +140,15 @@ def remove_user(user_id: int, db: Session = Depends(get_db)):
     if deleted_user is None:
         raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return deleted_user
+
+@app.get("/products/", response_model=List[schemas.Product], tags=["Admin: Products"])
+def read_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    # TODO: Añadir protección de administrador
+    products = crud.get_products(db, skip=skip, limit=limit)
+    return products
+
+@app.post("/products/", response_model=schemas.Product, tags=["Admin: Products"])
+def create_new_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
+    # TODO: Añadir protección de administrador
+    return crud.create_product(db=db, product=product)
+

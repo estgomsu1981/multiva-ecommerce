@@ -52,3 +52,26 @@ class UserUpdate(BaseModel):
     direccion: Optional[str] = None
     categoria_cliente: Optional[str] = None
     tipo_usuario: Optional[str] = None
+
+# Campos base de un producto
+class ProductBase(BaseModel):
+    nombre: str
+    descripcion: Optional[str] = None
+    especificacion: Optional[str] = None
+    precio: float
+    minimo_compra: Optional[int] = 1
+    descuento: Optional[int] = 0
+    imagen_url: Optional[str] = None
+    category_id: int  # El ID de la categoría a la que pertenece
+
+# Esquema para la creación de un producto
+class ProductCreate(ProductBase):
+    pass
+
+# Esquema para la respuesta de la API (incluye el objeto Category completo)
+class Product(ProductBase):
+    id: int
+    category: Category  # <-- ¡Aquí está la magia! Anidamos el esquema de Categoría
+
+    class Config:
+        from_attributes = True
