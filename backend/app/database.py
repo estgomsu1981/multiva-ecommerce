@@ -14,8 +14,13 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL is None:
     raise ValueError("No se encontró la variable de entorno DATABASE_URL. Asegúrate de que tu archivo .env está configurado correctamente.")
 
-engine = create_engine(DATABASE_URL)
-
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=10,
+    max_overflow=20,
+    pool_recycle=300,  # Recicla conexiones cada 300 segundos (5 minutos)
+    pool_pre_ping=True, # Verifica si la conexión está viva antes de usarla
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
