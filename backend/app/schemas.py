@@ -44,3 +44,11 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+    
+class UserUpdate(BaseModel):
+    nombre: Optional[str] = None
+    apellidos: Optional[str] = None
+    email: Optional[EmailStr] = None
+    direccion: Optional[str] = None
+    categoria_cliente: Optional[str] = None
+    tipo_usuario: Optional[str] = None

@@ -117,8 +117,26 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     }, 
     expires_delta=access_token_expires
 )
-   
-   
     return {"access_token": access_token, "token_type": "bearer"}
 
+@app.get("/users/", response_model=List[schemas.User], tags=["Admin: Users"])
+def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    # TODO: Añadir protección para que solo los admins puedan acceder
+    users = crud.get_users(db, skip=skip, limit=limit)
+    return users
 
+@app.put("/users/{user_id}", response_model=schemas.User, tags=["Admin: Users"])
+def update_user_details(user_id: int, user_update: schemas.UserUpdate, db: Session = Depends(get_db)):
+    # TODO: Añadir protección para que solo los admins puedan acceder
+    updated_user = crud.update_user(db, user_id=user_id, user_update=user_update)
+    if updated_user is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return updated_user
+
+@app.delete("/users/{user_id}", response_model=schemas.User, tags=["Admin: Users"])
+def remove_user(user_id: int, db: Session = Depends(get_db)):
+    # TODO: Añadir protección para que solo los admins puedan acceder
+    deleted_user = crud.delete_user(db, user_id=user_id)
+    if deleted_user is None:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    return deleted_user

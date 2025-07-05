@@ -1,0 +1,470 @@
+/* ==========================================================================
+   Variables y Estilos Base
+   ========================================================================== */
+
+:root {
+    --primary-color: #0d6efd;
+    --secondary-color: #6c757d;
+    --success-color: #198754;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --white: #fff;
+    --dark-text: #212529;
+    --light-text: #f8f9fa;
+    --border-color: #dee2e6;
+    --background-color: #f8f9fa;
+    --blue-nav: #004a99;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: var(--background-color);
+    color: var(--dark-text);
+}
+
+.container {
+    max-width: 1140px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+/* ==========================================================================
+   Estilos para Componentes de UI (Botones, Tablas, etc.)
+   ========================================================================== */
+
+.btn {
+    display: inline-block;
+    font-weight: 400;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    border-radius: 0.25rem;
+    transition: color .15s ease-in-out,background-color .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    text-decoration: none;
+}
+
+.btn-success { color: var(--white); background-color: var(--success-color); border-color: var(--success-color); }
+.btn-primary { color: var(--white); background-color: var(--primary-color); border-color: var(--primary-color); }
+.btn-danger { color: var(--white); background-color: var(--danger-color); border-color: var(--danger-color); }
+.btn-secondary { color: var(--white); background-color: var(--secondary-color); border-color: var(--secondary-color); }
+.btn-warning { color: var(--dark-text); background-color: var(--warning-color); border-color: var(--warning-color); }
+
+.btn-sm { 
+    padding: 0.25rem 0.5rem; 
+    font-size: 0.875rem; 
+    border-radius: 0.2rem;
+}
+
+.table-responsive-wrapper { overflow-x: auto; }
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1rem;
+    background-color: var(--white);
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+}
+th, td {
+    padding: 0.75rem;
+    vertical-align: middle;
+    border-top: 1px solid var(--border-color);
+    text-align: left;
+}
+thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid var(--border-color);
+    background-color: #e9ecef;
+}
+td button + button { margin-left: 0.5rem; }
+
+/* ==========================================================================
+   Estilos de Navegación y Header
+   ========================================================================== */
+
+.main-header {
+    background-color: var(--blue-nav);
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--white);
+}
+
+.logo {
+    height: 40px;
+}
+
+.main-nav {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.main-nav a,
+.main-nav .dropdown-toggle-btn {
+    color: var(--white, #ffffff);
+    text-decoration: none;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    display: inline-block;
+    vertical-align: middle;
+    transition: opacity 0.2s ease;
+}
+
+.main-nav a:hover,
+.main-nav .dropdown-toggle-btn:hover {
+    opacity: 0.8;
+    text-decoration: underline;
+}
+
+.main-nav .dropdown-toggle-btn {
+    background: none;
+    border: none;
+    padding: 0;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    text-align: left;
+    padding: 0.5rem 1rem;
+}
+
+.main-nav a[href="/carrito"] {
+    padding: 0.5rem;
+}
+
+.main-nav a[href="/carrito"]:hover {
+    text-decoration: none;
+}
+
+.dropdown { position: relative; display: inline-block; }
+.dropdown-content { display: none; position: absolute; background-color: #f9f9f9; min-width: 160px; box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2); z-index: 1; border-radius: 4px; }
+.dropdown-content a { color: var(--dark-text); padding: 12px 16px; text-decoration: none; display: block; }
+.dropdown-content a:hover { background-color: #f1f1f1; }
+.dropdown:hover .dropdown-content { display: block; }
+
+/* --- ESTILOS PARA EL BOTÓN HAMBURGUESA --- */
+.nav-toggle-btn {
+    display: none; /* Oculto por defecto en escritorio */
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    z-index: 1000;
+}
+
+.hamburger-line {
+    display: block;
+    width: 25px;
+    height: 3px;
+    background-color: var(--white, #ffffff);
+    border-radius: 3px;
+    transition: all 0.3s ease-in-out;
+}
+
+/* Espacio entre las líneas de la hamburguesa */
+.hamburger-line:not(:last-child) {
+    margin-bottom: 5px;
+}
+/* ----------------------------------------- */
+
+
+/* ==========================================================================
+   Estilos de la Página de Inicio (HomePage)
+   ========================================================================== */
+
+.hero-section {
+    background-color: #f8f9fa;
+    padding: 4rem 0 0 0; 
+    text-align: center;
+}
+
+.hero-title {
+    font-size: 3.5rem;
+    font-weight: 700;
+    color: #003366;
+    line-height: 1.2;
+    margin-bottom: 1rem;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: #495057;
+    letter-spacing: 0.5px;
+}
+
+.section-title {
+    text-align: center;
+    margin-top: 0; 
+    padding-top: 2.5rem;
+    padding-bottom: 2rem;
+    background-color: #f8f9fa;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: var(--dark-text);
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.category-card {
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    text-align: center;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.category-card-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.category-card-title {
+    padding: 1rem;
+    font-size: 1.2rem;
+    margin: 0;
+    background-color: #f9f9f9;
+}
+
+
+/* ==========================================================================
+   Estilos del Footer
+   ========================================================================== */
+.main-footer {
+    background-color: #343a40;
+    color: var(--white);
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: 2rem;
+}
+
+
+/* ==========================================================================
+   Reglas Responsive
+   ========================================================================== */
+
+@media (max-width: 768px) {
+    .main-nav { 
+        display: none; 
+        flex-direction: column;
+        position: absolute;
+        top: 60px; /* Ajustar según la altura de tu header */
+        left: 0;
+        width: 100%;
+        background-color: var(--blue-nav);
+    }
+    
+    .main-nav.is-open {
+        display: flex;
+    }
+    
+    .nav-toggle-btn { 
+        display: block; /* Mostramos el botón hamburguesa */
+    }
+    
+    .hero-title { font-size: 2.5rem; }
+    .hero-subtitle { font-size: 1.1rem; }
+    .hero-section { padding: 3rem 0; }
+    
+    .category-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+    .hero-title { font-size: 2rem; }
+    .hero-subtitle { font-size: 1rem; }
+    .hero-section { padding: 2.5rem 1rem; }
+
+    .category-grid { grid-template-columns: 1fr; }
+    .section-title { font-size: 1.5rem; }
+}
+/* ==========================================================================
+   Estilos para Formularios
+   ========================================================================== */
+
+/* Contenedor del formulario, como en la página de registro */
+.form-container {
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    max-width: 500px;
+    margin: 2rem auto; /* Centra el formulario en la página */
+}
+
+.form-container h2 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    color: var(--dark-text);
+}
+
+/* Estilo para las etiquetas (label) */
+form label {
+    display: block; /* Hace que cada label ocupe su propia línea */
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Estilo para los campos de entrada (input) */
+form input[type="text"],
+form input[type="email"],
+form input[type="password"],
+form input[type="number"],
+form textarea,
+form select {
+    display: block;
+    width: 100%; /* Ocupa todo el ancho disponible */
+    padding: 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: #495057;
+    background-color: var(--white);
+    background-clip: padding-box;
+    border: 1px solid var(--border-color);
+    border-radius: 0.25rem;
+    box-sizing: border-box; /* Asegura que el padding no aumente el ancho total */
+    margin-bottom: 1rem; /* Espacio debajo de cada campo */
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+}
+
+/* Efecto visual cuando se hace clic en un campo */
+form input:focus,
+form textarea:focus,
+form select:focus {
+    border-color: var(--primary-color);
+    outline: 0;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+/* Estilo para el enlace secundario debajo del botón */
+.form-link {
+    display: block;
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+.form-link:hover {
+    text-decoration: underline;
+}
+/* frontend/src/style.css */
+
+/* ... tus estilos existentes ... */
+
+/* Estilo para que el botón de logout se vea como un enlace dentro del dropdown */
+.dropdown-logout-btn {
+    background: none;
+    border: none;
+    padding: 12px 16px;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: pointer;
+    color: var(--dark-text);
+}
+.dropdown-logout-btn:hover {
+    background-color: #f1f1f1;
+}
+/* ==========================================================================
+   Estilos del Panel de Administrador
+   ========================================================================== */
+
+.admin-panel-container {
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+    max-width: 800px;
+    margin: 2rem auto;
+}
+
+.admin-panel-title {
+    text-align: center;
+    color: var(--blue-nav);
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+}
+
+.admin-menu-group {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.admin-menu-group > li {
+    margin-bottom: 1.5rem;
+}
+
+.admin-menu-header {
+    background-color: var(--blue-nav);
+    color: var(--white);
+    padding: 0.8rem 1.2rem;
+    font-weight: bold;
+    border-radius: 6px;
+    font-size: 1.1rem;
+}
+
+.admin-submenu {
+    list-style: none;
+    padding: 1rem;
+    background-color: #fdfdfd;
+    border: 1px solid #e9ecef;
+    border-top: none; /* Se pega al header */
+    border-radius: 0 0 6px 6px; /* Bordes redondeados solo abajo */
+}
+
+.admin-submenu li {
+    padding: 0.6rem 0.5rem;
+}
+
+.admin-submenu a {
+    text-decoration: none;
+    color: #495057;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.admin-submenu a:hover {
+    color: var(--primary-color);
+}
+
+.admin-menu-action {
+    display: block;
+    background-color: var(--secondary-color);
+    color: var(--white);
+    text-align: center;
+    padding: 0.8rem 1.2rem;
+    font-weight: bold;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.admin-menu-action:hover {
+    background-color: #5a6268;
+}
