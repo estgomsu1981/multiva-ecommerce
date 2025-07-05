@@ -152,3 +152,16 @@ def create_new_product(product: schemas.ProductCreate, db: Session = Depends(get
     # TODO: Añadir protección de administrador
     return crud.create_product(db=db, product=product)
 
+@app.put("/products/{product_id}", response_model=schemas.Product, tags=["Admin: Products"])
+def update_existing_product(product_id: int, product: schemas.ProductCreate, db: Session = Depends(get_db)):
+    updated_product = crud.update_product(db, product_id=product_id, product_update=product)
+    if updated_product is None:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return updated_product
+
+@app.delete("/products/{product_id}", response_model=schemas.Product, tags=["Admin: Products"])
+def remove_product(product_id: int, db: Session = Depends(get_db)):
+    deleted_product = crud.delete_product(db, product_id=product_id)
+    if deleted_product is None:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return deleted_product
