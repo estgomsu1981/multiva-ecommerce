@@ -169,9 +169,7 @@ const GestionCategorias = () => {
                         <tr>
                             <th>ID</th>
                             <th>Nombre</th>
-                            {/* --- CAMBIO 1: Encabezados de tabla actualizados --- */}
                             <th>Imagen</th>
-                            <th>URL</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -183,8 +181,6 @@ const GestionCategorias = () => {
                                 <tr key={cat.id}>
                                     <td>{cat.id}</td>
                                     <td>{cat.nombre}</td>
-                                    
-                                    {/* --- CAMBIO 2: Celda para la miniatura de la imagen --- */}
                                     <td>
                                         {cat.imagen ? (
                                             <img
@@ -196,11 +192,7 @@ const GestionCategorias = () => {
                                             'N/A'
                                         )}
                                     </td>
-                                    
-                                    <td>
-                                        <ImageUrlLink url={cat.imagen} />
-                                    </td>
-
+                                
                                     <td>
                                         <button onClick={() => handleShowEditForm(cat)} className="btn btn-primary btn-sm">Editar</button>
                                         <button onClick={() => handleDelete(cat.id)} className="btn btn-danger btn-sm">Eliminar</button>

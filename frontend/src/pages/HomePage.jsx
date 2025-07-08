@@ -41,67 +41,7 @@ const HomePage = () => {
     };
 
     return (
-        <>
-            {/* ====== HEADER DINÁMICO ====== */}
-            <header className="main-header">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <a href="/"><img src="/images/logo.png" alt="Logo Multiva" className="logo" /></a>
-                    {/* Saludo personalizado si el usuario ha iniciado sesión */}
-                    {user && (
-                        <span style={{ color: 'white', fontWeight: 'bold' }}>
-                            Hola, {user.nombre || user.username}!
-                        </span>
-                    )}
-                </div>
-
-                <button className="nav-toggle-btn" aria-label="Toggle navigation" onClick={handleNavToggle}>
-                    <span className="hamburger-line"></span>
-                    <span className="hamburger-line"></span>
-                    <span className="hamburger-line"></span>
-                </button>
-
-                <nav className="main-nav">
-                    <a href="/">Inicio</a>
-                    <div className="dropdown">
-                        <button className="dropdown-toggle-btn">Catálogo</button>
-                        <div className="dropdown-content">
-                            {categories.map(cat => (
-                                <a key={cat.id} href={`/catalogo/${cat.id}`}>{cat.nombre}</a>
-                            ))}
-                        </div>
-                    </div>
-                    <a href="/descuentos">Descuentos</a>
-                    <a href="/preguntas-frecuentes">Preguntas Frecuentes</a>
-                    <a href="/acerca-de-la-empresa">Acerca de la empresa</a>
-                    <a href="/ayuda">Ayuda</a>
-                    
-                    {/* Renderizado condicional del panel de administrador */}
-                    {user && user.rol === 'Administrador' && (
-                        <a href="/admin/panel">Panel de Administrador</a>
-                    )}
-
-                    <div className="dropdown">
-                        <button className="dropdown-toggle-btn">Mi Cuenta</button>
-                        <div className="dropdown-content">
-                            {user ? (
-                                <button 
-                                    onClick={handleLogout} 
-                                    className="dropdown-logout-btn"
-                                >
-                                    Logout
-                                </button>
-                            ) : (
-                                <>
-                                    <a href="/login">Iniciar Sesión</a>
-                                    <a href="/registro">Registrarse</a>
-                                </>
-                            )}
-                        </div>
-                    </div>
-                    <a href="/carrito"><img src="/images/carrito.png" alt="Carrito" style={{ height: '24px', verticalAlign: 'middle' }} /></a>
-                </nav>
-            </header>
-            
+        <>           
             <HeroSection />
 
             <div className="container">
