@@ -1,10 +1,10 @@
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, joinedload
 from . import models, schemas, security 
 
 
 # LEER una categoría por su ID
 def get_category(db: Session, category_id: int):
-    return db.query(models.Category).filter(models.Category.id == category_id).first()
+    return db.query(models.Category).options(joinedload(models.Category.products)).filter(models.Category.id == category_id).first()
 
 # LEER una categoría por su nombre
 def get_category_by_name(db: Session, name: str):
