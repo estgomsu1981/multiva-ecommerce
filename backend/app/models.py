@@ -9,7 +9,7 @@ class Category(Base):
     nombre = Column(String, index=True, unique=True, nullable=False)
     imagen = Column(String, nullable=True)
 
-    products = relationship("Product", back_populates="category")
+    products = relationship("Product", back_populates="category", lazy="joined")
 
 
 # --- REEMPLAZA LA CLASE PRODUCT VACÍA CON ESTO ---
@@ -29,7 +29,7 @@ class Product(Base):
     category_id = Column(Integer, ForeignKey("categories.id"))
 
     # El atributo que nos permite acceder al objeto Category desde un Product
-    category = relationship("Category", back_populates="products")
+    category = relationship("Category", back_populates="products", lazy="joined")
 
 
 class User(Base):
