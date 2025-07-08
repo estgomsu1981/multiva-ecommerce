@@ -12,7 +12,7 @@ def get_category_by_name(db: Session, name: str):
 
 # LEER todas las categorías
 def get_categories(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Category).options(selectinload(models.Category.products)).offset(skip).limit(limit).all()
+    return db.query(models.Category).options(joinedload(models.Category.products)).offset(skip).limit(limit).all()
 
 # CREAR una nueva categoría
 def create_category(db: Session, category: schemas.CategoryCreate):
