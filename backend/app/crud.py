@@ -1,12 +1,15 @@
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session
 from . import models, schemas, security 
 
+# ==========================================================================
+# CRUD para Categorías
+# ==========================================================================
 
 # LEER una categoría por su ID
-def get_categories(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Category).options(joinedload(models.Category.products)).offset(skip).limit(limit).all()
+def get_category(db: Session, category_id: int):
+    return db.query(models.Category).filter(models.Category.id == category_id).first()
 
-# LEER una categoría por su nombre
+# LEER una categoría por su nombre (útil para validaciones)
 def get_category_by_name(db: Session, name: str):
     return db.query(models.Category).filter(models.Category.nombre == name).first()
 
@@ -40,11 +43,72 @@ def delete_category(db: Session, category_id: int):
         db.commit()
     return db_category
 
+
+# ==========================================================================
+# CRUD para Productos
+# ==========================================================================
+
+# LEER todos los productos
+def get_products(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Product).offset(skip).limit(limit).all()
+
+# LEER todos los productos de una categoría específica
+def get_products_by_category(db: Session, category_id: int):
+    return db.query(models.Product).filter(models.Product.category_id == category_id).all()
+
+# CREAR un nuevo producto
+def create_product(db: Session, product: schemas.ProductCreate, category_id: int):
+    # Usamos model_dump para convertir el esquema Pydantic a un diccionario
+    db_product = models.Product(**product.model_dump(), category_id=category_id)
+    db.add(db_product)
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
+# LEER un producto específico por su ID
+def get_product(db: Session, product_id: int):
+    return db.query(models.Product).filter(models.Product.id == product_id).first()
+
+# ACTUALIZAR un producto
+def update_product(db: Session, product_id: int, product_update: schemas.ProductCreate):
+    db_product = get_product(db, product_id)
+    if not db_product:
+        return None
+    
+    update_data = product_update.model_dump(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_product, key, value)
+        
+    db.commit()
+    db.refresh(db_product)
+    return db_product
+
+# BORRAR un producto
+def delete_product(db: Session, product_id: int):
+    db_product = get_product(db, product_id)
+    if db_product:
+        db.delete(db_product)
+        db.commit()
+    return db_product
+
+
+# ==========================================================================
+# CRUD para Usuarios y Autenticación
+# ==========================================================================
+
 def get_user_by_email(db: Session, email: str):
     return db.query(models.User).filter(models.User.email == email).first()
 
 def get_user_by_username(db: Session, username: str):
     return db.query(models.User).filter(models.User.usuario == username).first()
+
+def authenticate_user(db: Session, username: str, password: str):
+    user = get_user_by_username(db, username=username)
+    if not user:
+        user = get_user_by_email(db, email=username)
+    if not user or not security.verify_password(password, user.hashed_password):
+        return False
+    return user
 
 def create_user(db: Session, user: schemas.UserCreate):
     hashed_password = security.get_password_hash(user.password)
@@ -60,20 +124,7 @@ def create_user(db: Session, user: schemas.UserCreate):
     db.commit()
     db.refresh(db_user)
     return db_user
-def authenticate_user(db: Session, username: str, password: str):
-    # Primero, intentamos buscar por nombre de usuario
-    user = get_user_by_username(db, username=username)
-    
-    # Si no se encuentra, intentamos buscar por correo electrónico
-    if not user:
-        user = get_user_by_email(db, email=username)
-    
-    # Si después de ambas búsquedas no hay usuario, o si la contraseña no coincide, fallamos
-    if not user or not security.verify_password(password, user.hashed_password):
-        return False
-        
-    # Si todo es correcto, devolvemos el objeto del usuario
-    return user
+
 def get_users(db: Session, skip: int = 0, limit: int = 100):
     return db.query(models.User).offset(skip).limit(limit).all()
 
@@ -96,36 +147,3 @@ def delete_user(db: Session, user_id: int):
         db.delete(db_user)
         db.commit()
     return db_user
-
-def get_products(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Product).offset(skip).limit(limit).all()
-
-def create_product(db: Session, product: schemas.ProductCreate):
-    db_product = models.Product(**product.model_dump())
-    db.add(db_product)
-    db.commit()
-    db.refresh(db_product)
-    return db_product
-
-def get_product(db: Session, product_id: int):
-    return db.query(models.Product).filter(models.Product.id == product_id).first()
-
-def update_product(db: Session, product_id: int, product_update: schemas.ProductCreate):
-    db_product = get_product(db, product_id)
-    if not db_product:
-        return None
-    
-    update_data = product_update.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_product, key, value)
-        
-    db.commit()
-    db.refresh(db_product)
-    return db_product
-
-def delete_product(db: Session, product_id: int):
-    db_product = get_product(db, product_id)
-    if db_product:
-        db.delete(db_product)
-        db.commit()
-    return db_product

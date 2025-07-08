@@ -1,6 +1,6 @@
 // frontend/src/components/Header.jsx
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom'; // <-- IMPORTA LINK
 import apiClient from '../api/axios';
 import AuthContext from '../context/AuthContext';
 
@@ -10,12 +10,15 @@ const Header = () => {
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
-        const fetchCategories = async () => {
+   const fetchCategories = async () => {
             try {
                 const response = await apiClient.get('/categories/');
+                // --- CONSOLE.LOG DE ÉXITO ---
+                console.log("Categorías para el menú cargadas:", response.data);
                 setCategories(response.data);
             } catch (err) {
-                console.error("Failed to fetch categories for header", err);
+                // --- CONSOLE.LOG DE ERROR ---
+                console.error("ERROR al cargar categorías para el header:", err);
             }
         };
         fetchCategories();
@@ -26,63 +29,48 @@ const Header = () => {
         navigate('/');
     };
 
-    const handleNavToggle = (e) => {
-        const nav = e.currentTarget.nextElementSibling;
-        nav.classList.toggle('is-open');
-    };
+    // ...
 
     return (
         <header className="main-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <a href="/"><img src="/images/logo.png" alt="Logo Multiva" className="logo" /></a>
-                {user && (
-                    <span style={{ color: 'white', fontWeight: 'bold' }}>
-                        Hola, {user.nombre || user.username}!
-                    </span>
-                )}
+                <Link to="/"><img src="/images/logo.png" alt="Logo Multiva" className="logo" /></Link>
+                {/* ... */}
             </div>
 
-            <button className="nav-toggle-btn" aria-label="Toggle navigation" onClick={handleNavToggle}>
-                <span className="hamburger-line"></span>
-                <span className="hamburger-line"></span>
-                <span className="hamburger-line"></span>
-            </button>
-
             <nav className="main-nav">
-                <a href="/">Inicio</a>
+                <Link to="/">Inicio</Link>
                 <div className="dropdown">
                     <button className="dropdown-toggle-btn">Catálogo</button>
                     <div className="dropdown-content">
                         {categories.map(cat => (
-                            <a key={cat.id} href={`/catalogo/${cat.id}`}>{cat.nombre}</a>
+                            <Link key={cat.id} to={`/catalogo/${cat.id}`}>{cat.nombre}</Link>
                         ))}
                     </div>
                 </div>
-                <a href="/descuentos">Descuentos</a>
-                <a href="/preguntas-frecuentes">Preguntas Frecuentes</a>
-                <a href="/acerca-de-la-empresa">Acerca de la empresa</a>
-                <a href="/ayuda">Ayuda</a>
+                <Link to="/descuentos">Descuentos</Link>
+                <Link to="/preguntas-frecuentes">Preguntas Frecuentes</Link>
+                <Link to="/acerca-de-la-empresa">Acerca de la empresa</Link>
+                <Link to="/ayuda">Ayuda</Link>
                 
                 {user && user.rol === 'Administrador' && (
-                    <a href="/admin/panel">Panel de Administrador</a>
+                    <Link to="/admin/panel">Panel de Administrador</Link>
                 )}
 
                 <div className="dropdown">
                     <button className="dropdown-toggle-btn">Mi Cuenta</button>
                     <div className="dropdown-content">
                         {user ? (
-                            <button onClick={handleLogout} className="dropdown-logout-btn">
-                                Logout
-                            </button>
+                            <button onClick={handleLogout} className="dropdown-logout-btn">Logout</button>
                         ) : (
                             <>
-                                <a href="/login">Iniciar Sesión</a>
-                                <a href="/registro">Registrarse</a>
+                                <Link to="/login">Iniciar Sesión</Link>
+                                <Link to="/registro">Registrarse</Link>
                             </>
                         )}
                     </div>
                 </div>
-                <a href="/carrito"><img src="/images/carrito.png" alt="Carrito" style={{ height: '24px', verticalAlign: 'middle' }} /></a>
+                <Link to="/carrito"><img src="/images/carrito.png" alt="Carrito" style={{ height: '24px', verticalAlign: 'middle' }} /></Link>
             </nav>
         </header>
     );

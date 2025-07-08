@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import apiClient from '../api/axios';
 import AuthContext from '../context/AuthContext';
 import HeroSection from '../components/HeroSection';
+import { Link } from 'react-router-dom'; 
 
 const HomePage = () => {
     // Hooks de estado y contexto
@@ -44,25 +45,18 @@ const HomePage = () => {
         <>           
             <HeroSection />
 
-            <div className="container">
-                <h2 className="section-title">Nuestras Categorías</h2>
-                {loading && <p>Cargando categorías...</p>}
-                {error && <p style={{ color: 'red' }}>{error}</p>}
-                {!loading && !error && (
-                    <div className="category-grid">
-                        {categories.map((category) => (
-                            <a key={category.id} href={`/catalogo/${category.id}`} className="category-card">
-                                <img 
-                                    src={category.imagen || '/images/placeholder.png'}
-                                    alt={category.nombre} 
-                                    className="category-card-image" 
-                                />
-                                <h3 className="category-card-title">{category.nombre}</h3>
-                            </a>
-                        ))}
-                    </div>
-                )}
-            </div>
+                <div className="category-grid">
+                    {categories.map((category) => (
+                        <Link key={category.id} to={`/catalogo/${category.id}`} className="category-card">
+                            <img 
+                                src={category.imagen || '/images/placeholder.png'}
+                                alt={category.nombre} 
+                                className="category-card-image" 
+                            />
+                            <h3 className="category-card-title">{category.nombre}</h3>
+                        </Link>
+                    ))}
+                </div>
         </>
     );
 };

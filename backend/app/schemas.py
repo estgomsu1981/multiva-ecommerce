@@ -1,7 +1,10 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 
-# --- Esquemas de Base (Sin relaciones) ---
+# ==========================================================================
+# Esquemas para Productos
+# ==========================================================================
+
 class ProductBase(BaseModel):
     nombre: str
     descripcion: Optional[str] = None
@@ -11,43 +14,39 @@ class ProductBase(BaseModel):
     descuento: int = 0
     imagen_url: Optional[str] = None
 
+class ProductCreate(ProductBase):
+    category_id: int
+
+# Esquema simple para leer un producto. Ya no necesita conocer a su categoría.
+class Product(ProductBase):
+    id: int
+    category_id: int # Mantenemos el ID por si el frontend lo necesita
+
+    class Config:
+        from_attributes = True
+
+# ==========================================================================
+# Esquemas para Categorías (MUCHO MÁS SIMPLE AHORA)
+# ==========================================================================
+
 class CategoryBase(BaseModel):
     nombre: str
     imagen: Optional[str] = None
 
-# --- Esquemas para Lectura (Con relaciones) ---
-
-# Primero, un esquema de categoría que NO conoce a sus productos
-class CategoryForProduct(CategoryBase):
-    id: int
-    class Config:
-        from_attributes = True
-
-# Ahora, un esquema de producto que SÍ conoce a su categoría
-class Product(ProductBase):
-    id: int
-    category: CategoryForProduct # <-- Relación definida aquí
-
-    class Config:
-        from_attributes = True
-
-# Finalmente, un esquema de categoría que SÍ conoce a sus productos
-class Category(CategoryBase):
-    id: int
-    products: List[Product] = [] # <-- Relación definida aquí
-
-    class Config:
-        from_attributes = True
-
-# --- Esquemas para Creación/Actualización ---
-class ProductCreate(ProductBase):
-    category_id: int
-
 class CategoryCreate(CategoryBase):
     pass
 
-# --- El resto de tus esquemas (User, Token, etc.) ---
-# ... (Pega aquí el resto de tus esquemas de User y Token sin cambios) ...
+# El único esquema de lectura que necesitamos para las categorías.
+# Ya no necesita la lista de productos.
+class Category(CategoryBase):
+    id: int
+    class Config:
+        from_attributes = True
+
+# ==========================================================================
+# Esquemas para Usuarios y Autenticación (sin cambios)
+# ==========================================================================
+
 class UserBase(BaseModel):
     email: EmailStr
     usuario: str

@@ -1,13 +1,15 @@
 // frontend/src/components/MainLayout.jsx
 import React from 'react';
-import Header from './Header'; // Importa el header que acabamos de crear
+import { Outlet } from 'react-router-dom'; // <-- IMPORTANTE: USA OUTLET
+import Header from './Header';
 
-const MainLayout = ({ children }) => {
+const MainLayout = () => {
     return (
         <>
             <Header />
             <main>
-                {children} {/* Aquí se renderizará la página actual (ej: HomePage, CategoryPage) */}
+                {/* Outlet es un placeholder donde React Router renderizará el componente de la ruta actual */}
+                <Outlet />
             </main>
             <footer className="main-footer">
                 <p>© 2025 Multiva. Todos los derechos reservados.</p>
