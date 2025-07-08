@@ -1,75 +1,71 @@
 from pydantic import BaseModel, EmailStr
-from typing import List, Optional
+from typing import Optional, List
 
+# ==========================================================================
+# Esquemas para Productos
+# ==========================================================================
 
-# Campos base de un producto
+# Propiedades base que un producto siempre tendrá
 class ProductBase(BaseModel):
     nombre: str
     descripcion: Optional[str] = None
     especificacion: Optional[str] = None
     precio: float
-    minimo_compra: Optional[int] = 1
-    descuento: Optional[int] = 0
+    minimo_compra: int = 1
+    descuento: int = 0
     imagen_url: Optional[str] = None
-    category_id: int  # El ID de la categoría a la que pertenece
 
-# Esquema para la creación de un producto
+# Propiedades que se recibirán al crear un producto
 class ProductCreate(ProductBase):
-    pass
+    category_id: int
 
-# Esquema para la respuesta de la API (incluye el objeto Category completo)
+# Propiedades que se devolverán desde la API
 class Product(ProductBase):
     id: int
-    # category: Category  # <-- ¡Aquí está la magia! Anidamos el esquema de Categoría
+    category_id: int
 
     class Config:
-        from_attributes = True
+        from_attributes = True # Permite a Pydantic leer desde modelos de SQLAlchemy
 
-# Esquema base con los campos comunes
+# ==========================================================================
+# Esquemas para Categorías
+# ==========================================================================
+
+# Propiedades base de una categoría
 class CategoryBase(BaseModel):
     nombre: str
     imagen: Optional[str] = None
 
-# Esquema para la creación (lo que la API espera recibir)
+# Propiedades para crear una categoría
 class CategoryCreate(CategoryBase):
     pass
 
-# Esquema para la lectura (lo que la API enviará como respuesta)
+# Propiedades que se devolverán desde la API
+# Incluye una lista de productos asociados a la categoría
 class Category(CategoryBase):
     id: int
-    products: List[Product] = []
-    
-    class Config:
-        from_attributes = True # Permite que Pydantic lea datos desde modelos SQLAlchemy
+    products: List[Product] = [] # Aquí está la relación
 
-# Esquema base con datos comunes
+    class Config:
+        from_attributes = True
+
+# ==========================================================================
+# Esquemas para Usuarios y Autenticación
+# ==========================================================================
+
+# Propiedades base de un usuario
 class UserBase(BaseModel):
-    email: EmailStr  # Pydantic valida que sea un email
+    email: EmailStr
     usuario: str
     nombre: str
     apellidos: str
     direccion: str
 
-# Esquema para la creación de un usuario (recibe la contraseña)
+# Propiedades para crear un usuario (incluye la contraseña)
 class UserCreate(UserBase):
     password: str
 
-# Esquema para la respuesta de la API (NO incluye la contraseña)
-class User(UserBase):
-    id: int
-    categoria_cliente: str
-    tipo_usuario: str
-
-    class Config:
-        from_attributes = True
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class TokenData(BaseModel):
-    username: Optional[str] = None
-    
+# Propiedades para actualizar un usuario desde el panel de admin
 class UserUpdate(BaseModel):
     nombre: Optional[str] = None
     apellidos: Optional[str] = None
@@ -78,4 +74,23 @@ class UserUpdate(BaseModel):
     categoria_cliente: Optional[str] = None
     tipo_usuario: Optional[str] = None
 
+# Propiedades que se devolverán desde la API (NO incluye la contraseña)
+class User(UserBase):
+    id: int
+    categoria_cliente: str
+    tipo_usuario: str
 
+    class Config:
+        from_attributes = True
+
+
+# --- Esquemas para Tokens JWT ---
+
+# Propiedades del token que se devuelve al cliente
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+# Propiedades que se extraen del payload del token
+class TokenData(BaseModel):
+    username: Optional[str] = None
