@@ -1,11 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 
-# ==========================================================================
-# Esquemas para Productos
-# ==========================================================================
-
-# Propiedades base que un producto siempre tendrá
+# --- Esquemas de Base (Sin relaciones) ---
 class ProductBase(BaseModel):
     nombre: str
     descripcion: Optional[str] = None
@@ -15,45 +11,43 @@ class ProductBase(BaseModel):
     descuento: int = 0
     imagen_url: Optional[str] = None
 
-# Propiedades que se recibirán al crear un producto
-class ProductCreate(ProductBase):
-    category_id: int
-
-# Propiedades que se devolverán desde la API
-class Product(ProductBase):
-    id: int
-    category_id: int
-
-    class Config:
-        from_attributes = True # Permite a Pydantic leer desde modelos de SQLAlchemy
-
-# ==========================================================================
-# Esquemas para Categorías
-# ==========================================================================
-
-# Propiedades base de una categoría
 class CategoryBase(BaseModel):
     nombre: str
     imagen: Optional[str] = None
 
-# Propiedades para crear una categoría
-class CategoryCreate(CategoryBase):
-    pass
+# --- Esquemas para Lectura (Con relaciones) ---
 
-# Propiedades que se devolverán desde la API
-# Incluye una lista de productos asociados a la categoría
-class Category(CategoryBase):
+# Primero, un esquema de categoría que NO conoce a sus productos
+class CategoryForProduct(CategoryBase):
     id: int
-    products: List[Product] = [] # Aquí está la relación
+    class Config:
+        from_attributes = True
+
+# Ahora, un esquema de producto que SÍ conoce a su categoría
+class Product(ProductBase):
+    id: int
+    category: CategoryForProduct # <-- Relación definida aquí
 
     class Config:
         from_attributes = True
 
-# ==========================================================================
-# Esquemas para Usuarios y Autenticación
-# ==========================================================================
+# Finalmente, un esquema de categoría que SÍ conoce a sus productos
+class Category(CategoryBase):
+    id: int
+    products: List[Product] = [] # <-- Relación definida aquí
 
-# Propiedades base de un usuario
+    class Config:
+        from_attributes = True
+
+# --- Esquemas para Creación/Actualización ---
+class ProductCreate(ProductBase):
+    category_id: int
+
+class CategoryCreate(CategoryBase):
+    pass
+
+# --- El resto de tus esquemas (User, Token, etc.) ---
+# ... (Pega aquí el resto de tus esquemas de User y Token sin cambios) ...
 class UserBase(BaseModel):
     email: EmailStr
     usuario: str
@@ -61,11 +55,9 @@ class UserBase(BaseModel):
     apellidos: str
     direccion: str
 
-# Propiedades para crear un usuario (incluye la contraseña)
 class UserCreate(UserBase):
     password: str
 
-# Propiedades para actualizar un usuario desde el panel de admin
 class UserUpdate(BaseModel):
     nombre: Optional[str] = None
     apellidos: Optional[str] = None
@@ -74,23 +66,16 @@ class UserUpdate(BaseModel):
     categoria_cliente: Optional[str] = None
     tipo_usuario: Optional[str] = None
 
-# Propiedades que se devolverán desde la API (NO incluye la contraseña)
 class User(UserBase):
     id: int
     categoria_cliente: str
     tipo_usuario: str
-
     class Config:
         from_attributes = True
 
-
-# --- Esquemas para Tokens JWT ---
-
-# Propiedades del token que se devuelve al cliente
 class Token(BaseModel):
     access_token: str
     token_type: str
 
-# Propiedades que se extraen del payload del token
 class TokenData(BaseModel):
     username: Optional[str] = None

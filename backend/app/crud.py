@@ -3,8 +3,8 @@ from . import models, schemas, security
 
 
 # LEER una categoría por su ID
-def get_category(db: Session, category_id: int):
-    return db.query(models.Category).options(joinedload(models.Category.products)).filter(models.Category.id == category_id).first()
+def get_categories(db: Session, skip: int = 0, limit: int = 100):
+    return db.query(models.Category).options(joinedload(models.Category.products)).offset(skip).limit(limit).all()
 
 # LEER una categoría por su nombre
 def get_category_by_name(db: Session, name: str):

@@ -63,10 +63,6 @@ const HomePage = () => {
                     </div>
                 )}
             </div>
-
-            <footer className="main-footer">
-                <p>© 2025 Multiva. Todos los derechos reservados.</p>
-            </footer>
         </>
     );
 };
