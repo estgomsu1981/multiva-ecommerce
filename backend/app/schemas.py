@@ -36,7 +36,7 @@ class CategoryBase(BaseModel):
 class CategoryCreate(CategoryBase):
     pass
 
-# El único esquema de lectura que necesitamos para las categorías.
+# El único esquema de lectura que necesitamos para las categorías.|
 # Ya no necesita la lista de productos.
 class Category(CategoryBase):
     id: int

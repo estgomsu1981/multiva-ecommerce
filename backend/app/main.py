@@ -57,6 +57,14 @@ def read_category(category_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
     return db_category
 
+
+# NUEVO ENDPOINT PARA OBTENER LOS PRODUCTOS
+@app.get("/categories/{category_id}/products", response_model=List[schemas.Product], tags=["Categories"])
+def read_products_for_category(category_id: int, db: Session = Depends(get_db)):
+    # Opcional: podrías verificar si la categoría existe primero
+    products = crud.get_products_by_category(db, category_id=category_id)
+    return products
+
 # Endpoint para ACTUALIZAR una categoría
 @app.put("/categories/{category_id}", response_model=schemas.Category, tags=["Categories"])
 def update_existing_category(category_id: int, category: schemas.CategoryCreate, db: Session = Depends(get_db)):
