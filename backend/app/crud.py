@@ -1,4 +1,4 @@
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session,joinedload
 from . import models, schemas, security 
 
 # ==========================================================================
@@ -161,3 +161,7 @@ def set_configuracion(db: Session, clave: str, valor: str):
     db.commit()
     db.refresh(db_config)
     return db_config
+
+def get_discounted_products(db: Session, skip: int = 0, limit: int = 100):
+    # Usamos joinedload para traer la categoría, igual que en get_products
+    return db.query(models.Product).options(joinedload(models.Product.category)).filter(models.Product.descuento > 0).offset(skip).limit(limit).all()

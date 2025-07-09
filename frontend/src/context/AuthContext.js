@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
                 setUser({ 
                     username: decodedToken.sub,
                     nombre: decodedToken.nombre,
-                    rol: decodedToken.rol || 'Cliente' 
+                    rol: decodedToken.rol || 'Cliente', 
                     categoria: decodedToken.categoria_cliente || 'Regular' 
                 });
 

@@ -186,3 +186,8 @@ def read_configuracion(clave: str, db: Session = Depends(get_db)):
 @app.put("/configuracion/{clave}", response_model=schemas.Configuracion, tags=["Configuración"])
 def update_configuracion(clave: str, valor: str, db: Session = Depends(get_db)):
     return crud.set_configuracion(db, clave=clave, valor=valor)
+
+@app.get("/products/discounted", response_model=List[schemas.Product], tags=["Products"])
+def read_discounted_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    products = crud.get_discounted_products(db, skip=skip, limit=limit)
+    return products
