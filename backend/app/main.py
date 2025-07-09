@@ -121,7 +121,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
     data={
         "sub": user.usuario, 
         "nombre": user.nombre, 
-        "rol": user.tipo_usuario  
+        "rol": user.tipo_usuario,  
         "categoria_cliente": user.categoria_cliente
     }, 
     expires_delta=access_token_expires

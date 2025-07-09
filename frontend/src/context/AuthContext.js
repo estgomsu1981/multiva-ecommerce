@@ -26,8 +26,6 @@ export const AuthProvider = ({ children }) => {
         if (token) {
             try {
                 const decodedToken = jwtDecode(token);
-                // Aquí asumimos que el token incluye el nombre de usuario y el rol
-                // Necesitaremos ajustar el backend para que añada esta información al token
                 setUser({ 
                     username: decodedToken.sub,
                     nombre: decodedToken.nombre,
