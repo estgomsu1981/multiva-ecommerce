@@ -12,6 +12,7 @@ import AdminPanelPage from './pages/AdminPanelPage';
 import GestionCategorias from './pages/GestionCategorias';
 import GestionUsuarios from './pages/GestionUsuarios';
 import GestionProductos from './pages/GestionProductos'; 
+import GestionDescuentoPage from './pages/GestionDescuentoPage';
 
 import './style.css';
 
@@ -30,11 +31,8 @@ function App() {
                     <Route path="admin/categorias" element={<GestionCategorias />} />
                     <Route path="admin/usuarios" element={<GestionUsuarios />} />
                     <Route path="/admin/productos" element={<GestionProductos />} /> 
-                    {/* Añade aquí otras rutas que usen el layout principal */}
-                </Route>
-
-                {/* Aquí podrías tener otras rutas que NO usen el MainLayout, si las necesitaras */}
-                
+                    <Route path="/admin/descuentos" element={<GestionDescuentoPage />} />
+                </Route>               
             </Routes>
         </Router>
     );
