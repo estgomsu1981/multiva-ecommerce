@@ -147,3 +147,17 @@ def delete_user(db: Session, user_id: int):
         db.delete(db_user)
         db.commit()
     return db_user
+
+def get_configuracion(db: Session, clave: str):
+    return db.query(models.Configuracion).filter(models.Configuracion.clave == clave).first()
+
+def set_configuracion(db: Session, clave: str, valor: str):
+    db_config = get_configuracion(db, clave)
+    if db_config:
+        db_config.valor = valor
+    else:
+        db_config = models.Configuracion(clave=clave, valor=valor)
+        db.add(db_config)
+    db.commit()
+    db.refresh(db_config)
+    return db_config

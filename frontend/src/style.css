@@ -522,3 +522,257 @@ form select:focus {
     margin: 2rem auto;
     padding: 0 1rem;
 }
+/* ==========================================================================
+   Estilos para la Lista de Productos en la Página de Categoría
+   ========================================================================== */
+
+.product-list {
+    display: flex;
+    flex-direction: column; /* Apila los productos verticalmente */
+    gap: 2rem; /* Espacio entre cada tarjeta de producto */
+}
+
+/* El contenedor principal de cada producto en la lista */
+.product-list-item {
+    display: flex; /* Para poner la imagen a la izquierda y el contenido a la derecha */
+    gap: 1.5rem;
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    position: relative; /* Para la etiqueta de descuento */
+}
+
+.product-list-item .discount-tag {
+    position: absolute;
+    top: -1px; /* Para que se pegue al borde superior */
+    left: 20px;
+    background-color: var(--danger-color);
+    color: var(--white);
+    padding: 0.3rem 0.8rem;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border-radius: 0 0 4px 4px;
+}
+
+/* Columna de la imagen */
+.product-image-column {
+    flex: 0 0 250px; /* Ancho fijo para la imagen */
+    text-align: center;
+}
+.product-image-column img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+/* Columna de la información del producto */
+.product-info-column {
+    flex: 1; /* Ocupa el resto del espacio */
+    display: flex;
+    flex-direction: column;
+}
+
+.product-info-column h3 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+}
+
+/* Estilos para precios, etc., que ya teníamos, pero adaptados */
+.product-list-item .price-container,
+.product-list-item .min-purchase,
+.product-list-item .quantity-selector {
+    margin-bottom: 1rem;
+    text-align: left;
+}
+
+.product-list-item .product-details {
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+}
+.product-list-item .product-details h4 {
+    margin-bottom: 0.5rem;
+}
+
+.product-list-item .add-to-cart-btn {
+    align-self: flex-start; /* Alinea el botón a la izquierda */
+    max-width: 200px;
+}
+
+/* Responsive para la lista de productos */
+@media (max-width: 768px) {
+    .product-list-item {
+        flex-direction: column; /* En móvil, la imagen se pone arriba */
+    }
+    .product-image-column {
+        flex-basis: auto; /* El ancho ya no es fijo */
+        width: 100%;
+        max-width: 300px; /* Un máximo para que no sea gigante */
+        margin: 0 auto;
+    }
+}
+/* ==========================================================================
+   Estilos de la Página de Categoría y Productos (Diseño de Tarjetas)
+   ========================================================================== */
+
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr); /* 3 columnas */
+    gap: 1.5rem;
+}
+
+.product-card {
+    background-color: var(--white);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+    position: relative; /* Necesario para la etiqueta de descuento */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.product-card .discount-tag {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background-color: var(--danger-color);
+    color: var(--white);
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    font-weight: bold;
+    border-radius: 4px;
+}
+
+.product-card img {
+    max-width: 100%;
+    height: 220px; /* Altura fija para la imagen */
+    object-fit: contain; /* 'contain' para que la imagen se vea completa */
+    margin: 0 auto 1rem auto;
+}
+
+.product-card h3 {
+    font-size: 1.25rem;
+    color: var(--blue-nav);
+    margin: 0 0 0.5rem 0;
+}
+
+.product-card .price-container {
+    margin-bottom: 0.5rem;
+    line-height: 1.2;
+}
+
+.product-card .original-price {
+    text-decoration: line-through;
+    color: #888;
+    font-size: 1rem;
+    display: block; /* Para que aparezca arriba del precio con descuento */
+}
+
+.product-card .discounted-price {
+    color: var(--danger-color);
+    font-weight: bold;
+    font-size: 1.3rem;
+    display: block;
+}
+
+.product-card .price {
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: #333;
+}
+
+.product-card .min-purchase {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin: 0.5rem 0 1rem 0;
+}
+
+.product-card .quantity-selector {
+    margin-bottom: 1rem;
+}
+
+.product-card .quantity-selector input {
+    width: 80px;
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+.product-card .add-to-cart-btn {
+    background-color: #e67e22; /* Naranja del mockup */
+    color: var(--white);
+    border: none;
+    font-weight: bold;
+    padding: 0.75rem;
+    width: 100%;
+    margin-top: auto; /* Empuja el botón al final si las tarjetas tienen alturas diferentes */
+}
+.product-card .add-to-cart-btn:hover {
+    background-color: #d35400;
+}
+
+.product-card .product-details {
+    text-align: left;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.9rem;
+    color: #495057;
+}
+
+.product-card .product-details h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    color: #333;
+}
+
+.go-to-cart-link {
+    display: block;
+    width: fit-content;
+    margin: 2.5rem auto 0 auto;
+    background-color: var(--warning-color);
+    color: var(--dark-text);
+    padding: 0.75rem 2rem;
+    font-weight: bold;
+    font-size: 1.2rem;
+}
+.go-to-cart-link:hover {
+    text-decoration: none;
+}
+
+
+/* Responsive para la cuadrícula de productos */
+@media (max-width: 992px) {
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (max-width: 576px) {
+    .product-grid {
+        grid-template-columns: 1fr;
+    }
+}
+/* en style.css, dentro de la sección de Navegación */
+
+.header-left-section {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    flex-shrink: 0; /* <-- LA CLAVE: Evita que esta sección se encoja */
+}
+
+.user-greeting {
+    color: var(--white);
+    font-weight: bold;
+    white-space: nowrap; /* Evita que el saludo se parta en dos líneas */
+}
+
+/* Y asegurémonos de que la navegación ocupe el espacio sobrante */
+.main-header .main-nav {
+    justify-content: flex-end;
+    flex-grow: 1;
+}

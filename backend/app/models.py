@@ -45,3 +45,8 @@ class User(Base):
     
     categoria_cliente = Column(String, default="Regular")
     tipo_usuario = Column(String, default="Cliente")
+
+class Configuracion(Base):
+    __tablename__ = "configuracion"
+    clave = Column(String, primary_key=True, index=True)
+    valor = Column(String, nullable=True)

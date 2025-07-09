@@ -1,24 +1,22 @@
-// frontend/src/components/Header.jsx
 import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom'; // <-- IMPORTA LINK
+import { useNavigate, Link } from 'react-router-dom';
 import apiClient from '../api/axios';
 import AuthContext from '../context/AuthContext';
 
+// --- LA LÍNEA QUE FALTABA ---
 const Header = () => {
+    // --- Toda tu lógica va aquí dentro ---
     const { user, logout } = useContext(AuthContext);
     const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
 
     useEffect(() => {
-   const fetchCategories = async () => {
+        const fetchCategories = async () => {
             try {
                 const response = await apiClient.get('/categories/');
-                // --- CONSOLE.LOG DE ÉXITO ---
-                console.log("Categorías para el menú cargadas:", response.data);
                 setCategories(response.data);
             } catch (err) {
-                // --- CONSOLE.LOG DE ERROR ---
-                console.error("ERROR al cargar categorías para el header:", err);
+                console.error("Failed to fetch categories for header", err);
             }
         };
         fetchCategories();
@@ -29,14 +27,30 @@ const Header = () => {
         navigate('/');
     };
 
-    // ...
-
+    const handleNavToggle = (e) => {
+        const nav = e.currentTarget.nextElementSibling;
+        if (nav) {
+            nav.classList.toggle('is-open');
+        }
+    };
+    
+    // --- Y el return va justo antes del cierre de la función ---
     return (
         <header className="main-header">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div className="header-left-section">
                 <Link to="/"><img src="/images/logo.png" alt="Logo Multiva" className="logo" /></Link>
-                {/* ... */}
+                {user && (
+                    <span className="user-greeting">
+                        Hola, {user.nombre || user.username}!
+                    </span>
+                )}
             </div>
+
+            <button className="nav-toggle-btn" aria-label="Toggle navigation" onClick={handleNavToggle}>
+                <span className="hamburger-line"></span>
+                <span className="hamburger-line"></span>
+                <span className="hamburger-line"></span>
+            </button>
 
             <nav className="main-nav">
                 <Link to="/">Inicio</Link>
@@ -48,6 +62,10 @@ const Header = () => {
                         ))}
                     </div>
                 </div>
+
+                {/* Div espaciador para empujar los siguientes elementos a la derecha */}
+                <div className="nav-spacer"></div>
+
                 <Link to="/descuentos">Descuentos</Link>
                 <Link to="/preguntas-frecuentes">Preguntas Frecuentes</Link>
                 <Link to="/acerca-de-la-empresa">Acerca de la empresa</Link>
@@ -61,7 +79,9 @@ const Header = () => {
                     <button className="dropdown-toggle-btn">Mi Cuenta</button>
                     <div className="dropdown-content">
                         {user ? (
-                            <button onClick={handleLogout} className="dropdown-logout-btn">Logout</button>
+                            <button onClick={handleLogout} className="dropdown-logout-btn">
+                                Logout
+                            </button>
                         ) : (
                             <>
                                 <Link to="/login">Iniciar Sesión</Link>
@@ -74,6 +94,7 @@ const Header = () => {
             </nav>
         </header>
     );
-};
+// --- LA LLAVE DE CIERRE QUE FALTABA ---
+}; 
 
 export default Header;

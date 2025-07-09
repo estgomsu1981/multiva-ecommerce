@@ -173,3 +173,15 @@ def remove_product(product_id: int, db: Session = Depends(get_db)):
     if deleted_product is None:
         raise HTTPException(status_code=404, detail="Producto no encontrado")
     return deleted_product
+
+@app.get("/configuracion/{clave}", response_model=schemas.Configuracion, tags=["Configuración"])
+def read_configuracion(clave: str, db: Session = Depends(get_db)):
+    config = crud.get_configuracion(db, clave=clave)
+    if config is None:
+        # Si no existe, la creamos con un valor por defecto para que el frontend no falle
+        return crud.set_configuracion(db, clave=clave, valor="0")
+    return config
+
+@app.put("/configuracion/{clave}", response_model=schemas.Configuracion, tags=["Configuración"])
+def update_configuracion(clave: str, valor: str, db: Session = Depends(get_db)):
+    return crud.set_configuracion(db, clave=clave, valor=valor)
