@@ -122,7 +122,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
         "sub": user.usuario, 
         "nombre": user.nombre, 
         "rol": user.tipo_usuario,  
-        "categoria_cliente": user.categoria_cliente
+        "categoria_cliente": user.categoria_cliente,
         "email": user.email,
         "direccion": user.direccion,
         "telefono": user.telefono
