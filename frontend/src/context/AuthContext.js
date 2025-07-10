@@ -25,7 +25,12 @@ export const AuthProvider = ({ children }) => {
                     const response = await apiClient.get('/users/me');
                     
                     // Guardamos el objeto de usuario completo que viene de la API
-                    setUser(response.data); 
+                    const userData = response.data;
+                    setUser({
+                        ...userData,
+                        rol: userData.tipo_usuario, // Creamos un alias 'rol'
+                        categoria: userData.categoria_cliente, // Creamos un alias 'categoria'
+                    });
 
                     // Si el usuario es de categoría 'Frecuente', vamos a buscar su descuento
                     if (response.data.categoria_cliente === 'Frecuente') {

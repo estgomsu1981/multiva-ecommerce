@@ -12,6 +12,8 @@ const Header = () => {
     const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
 
+    console.log("Usuario en Header:", user);
+
     useEffect(() => {
         const fetchCategories = async () => {
             try {
@@ -74,10 +76,10 @@ const Header = () => {
                 <Link to="/acerca-de-la-empresa">Acerca de la empresa</Link>
                 <Link to="/ayuda">Ayuda</Link>
                 
-                {user && user.rol === 'Administrador' && (
+                {user && user.tipo_usuario === 'Administrador' && (
                     <Link to="/admin/panel">Panel de Administrador</Link>
                 )}
-
+                
                 <div className="dropdown">
                     <button className="dropdown-toggle-btn">Mi Cuenta</button>
                     <div className="dropdown-content">
