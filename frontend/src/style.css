@@ -364,13 +364,13 @@ form label {
 }
 
 /* Estilo para los campos de entrada (input) */
-form input[type="text"],
-form input[type="email"],
-form input[type="password"],
-form input[type="number"],
-form input[type="tel"],
-form textarea,
-form select {
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+textarea,
+select {
     display: block;
     width: 100%; /* Ocupa todo el ancho disponible */
     padding: 0.75rem;
@@ -387,9 +387,9 @@ form select {
 }
 
 /* Efecto visual cuando se hace clic en un campo */
-form input:focus,
-form textarea:focus,
-form select:focus {
+input:focus,
+textarea:focus,
+select:focus {
     border-color: var(--primary-color);
     outline: 0;
     box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
@@ -893,4 +893,17 @@ form select:focus {
 .auth-prompt a {
     color: var(--primary-color);
     font-weight: bold;
+}
+.embedded-form {
+    padding: 1rem;
+    background-color: #fdfdfd;
+    border-radius: 8px;
+}
+.embedded-form label {
+    margin-top: 1rem;
+}
+.embedded-form-actions {
+    margin-top: 1.5rem;
+    display: flex;
+    gap: 1rem;
 }

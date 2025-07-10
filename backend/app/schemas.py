@@ -86,3 +86,8 @@ class Configuracion(BaseModel):
     valor: Optional[str] = None
     class Config:
         from_attributes = True
+
+class UserContactUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    telefono: Optional[str] = None
+    direccion: Optional[str] = None

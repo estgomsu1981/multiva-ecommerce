@@ -194,3 +194,12 @@ def update_configuracion(clave: str, valor: str, db: Session = Depends(get_db)):
 def read_discounted_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     products = crud.get_discounted_products(db, skip=skip, limit=limit)
     return products
+
+@app.put("/users/me/contact", response_model=schemas.User, tags=["Users"])
+def update_my_contact_info(
+    contact_data: schemas.UserContactUpdate, 
+    db: Session = Depends(get_db), 
+    current_user: models.User = Depends(security.get_current_user)
+):
+    # Usamos el crud.update_user que ya existe, pasándole el ID del usuario logueado
+    return crud.update_user(db, user_id=current_user.id, user_update=contact_data)
