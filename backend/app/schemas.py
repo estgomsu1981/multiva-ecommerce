@@ -53,6 +53,7 @@ class UserBase(BaseModel):
     nombre: str
     apellidos: str
     direccion: str
+    telefono: str 
 
 class UserCreate(UserBase):
     password: str
@@ -62,6 +63,7 @@ class UserUpdate(BaseModel):
     apellidos: Optional[str] = None
     email: Optional[EmailStr] = None
     direccion: Optional[str] = None
+    telefono: Optional[str] = None
     categoria_cliente: Optional[str] = None
     tipo_usuario: Optional[str] = None
 

@@ -13,6 +13,10 @@ import GestionCategorias from './pages/GestionCategorias';
 import GestionUsuarios from './pages/GestionUsuarios';
 import GestionProductos from './pages/GestionProductos'; 
 import GestionDescuentoPage from './pages/GestionDescuentoPage';
+import DescuentosPage from './pages/DescuentosPage';
+import CartPage from './pages/CartPage';
+import AyudaPage from './pages/AyudaPage';
+import CotizacionPage from './pages/CotizacionPage';
 
 import './style.css';
 
@@ -32,6 +36,10 @@ function App() {
                     <Route path="admin/usuarios" element={<GestionUsuarios />} />
                     <Route path="/admin/productos" element={<GestionProductos />} /> 
                     <Route path="/admin/descuentos" element={<GestionDescuentoPage />} />
+                    <Route path="/descuentos" element={<DescuentosPage />} />
+                    <Route path="/carrito" element={<CartPage />} />
+                    <Route path="/ayuda" element={<AyudaPage />} />
+                    <Route path="/solicitar-cotizacion" element={<CotizacionPage />} />
                 </Route>               
             </Routes>
         </Router>

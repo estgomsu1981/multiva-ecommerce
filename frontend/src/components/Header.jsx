@@ -1,12 +1,14 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import apiClient from '../api/axios';
 import AuthContext from '../context/AuthContext';
+import CartContext from '../context/CartContext';
 
-// --- LA LÍNEA QUE FALTABA ---
 const Header = () => {
-    // --- Toda tu lógica va aquí dentro ---
     const { user, logout } = useContext(AuthContext);
+    // --- LÍNEA CORREGIDA ---
+    // Pedimos todo lo que necesitamos del CartContext de una sola vez
+    const { clearCart, cartItems } = useContext(CartContext);
     const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
 
@@ -24,6 +26,7 @@ const Header = () => {
 
     const handleLogout = () => {
         logout();
+        clearCart();
         navigate('/');
     };
 
@@ -34,7 +37,8 @@ const Header = () => {
         }
     };
     
-    // --- Y el return va justo antes del cierre de la función ---
+    const totalItemsInCart = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
     return (
         <header className="main-header">
             <div className="header-left-section">
@@ -62,8 +66,7 @@ const Header = () => {
                         ))}
                     </div>
                 </div>
-
-                {/* Div espaciador para empujar los siguientes elementos a la derecha */}
+                
                 <div className="nav-spacer"></div>
 
                 <Link to="/descuentos">Descuentos</Link>
@@ -90,11 +93,16 @@ const Header = () => {
                         )}
                     </div>
                 </div>
-                <Link to="/carrito"><img src="/images/carrito.png" alt="Carrito" style={{ height: '24px', verticalAlign: 'middle' }} /></Link>
+                
+                <Link to="/carrito" className="cart-icon-link">
+                    <img src="/images/carrito.png" alt="Carrito" style={{ height: '24px', verticalAlign: 'middle' }} />
+                    {totalItemsInCart > 0 && (
+                        <span className="cart-counter">{totalItemsInCart}</span>
+                    )}
+                </Link>
             </nav>
         </header>
     );
-// --- LA LLAVE DE CIERRE QUE FALTABA ---
-}; 
+};
 
 export default Header;

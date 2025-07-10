@@ -118,6 +118,7 @@ def create_user(db: Session, user: schemas.UserCreate):
         nombre=user.nombre,
         apellidos=user.apellidos,
         direccion=user.direccion,
+        telefono=user.telefono, 
         hashed_password=hashed_password
     )
     db.add(db_user)

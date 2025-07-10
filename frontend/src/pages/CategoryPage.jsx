@@ -2,16 +2,17 @@ import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import apiClient from '../api/axios';
 import AuthContext from '../context/AuthContext';
+import CartContext from '../context/CartContext'; 
 
 const CategoryPage = () => {
     const { categoryId } = useParams();
     const [category, setCategory] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [quantities, setQuantities] = useState({}); 
 
-    // Obtenemos los datos de autenticación y el descuento de cliente frecuente del contexto
     const { user, frequentClientDiscount } = useContext(AuthContext);
-
+    const { addItemToCart } = useContext(CartContext); 
 
     useEffect(() => {
         if (!categoryId) {
@@ -45,34 +46,70 @@ const CategoryPage = () => {
         fetchAllData();
     }, [categoryId]);
 
+    // --- FUNCIONES MOVIDAS AL NIVEL CORRECTO ---
+
+    const handleQuantityChange = (productId, value) => {
+        const quantity = parseInt(value, 10);
+        if (quantity >= 1) {
+            setQuantities(prev => ({ ...prev, [productId]: quantity }));
+        }
+    };
+
+    const handleAddToCart = (product) => {
+
+
+        const quantity = quantities[product.id] || product.minimo_compra;
+
+        // --- VALIDACIÓN DE CANTIDAD MÍNIMA ---
+        if (quantity < product.minimo_compra) {
+            alert(`La cantidad mínima para ${product.nombre} es ${product.minimo_compra}.`);
+            // Opcional: Resetea la cantidad en el input al mínimo
+            setQuantities(prev => ({ ...prev, [product.id]: product.minimo_compra }));
+            return; // Detiene la ejecución de la función
+        }
+        
+        const finalDiscountInfo = getFinalDiscount(product.descuento || 0);     
+        const finalPrice = product.precio * (1 - finalDiscountInfo.percentage / 100);        
+
+        const productToAdd = {
+            id: product.id,
+            nombre: product.nombre,
+            precio: Number(product.precio) || 0,
+            finalPrice: Number(finalPrice) || 0,
+            descuento: Number(finalDiscountInfo.percentage) || 0,
+            minimo_compra: product.minimo_compra, 
+        };
+
+        console.log("CategoryPage: Enviando al contexto", { 
+            productToAdd, 
+            quantity 
+        });
+
+        console.log("Añadiendo al carrito:", { productToAdd, quantity });
+     
+        addItemToCart(productToAdd, quantity);
+        alert(`${quantity} x ${product.nombre} añadido(s) al carrito!`);
+    };
+
     const formatPrice = (price) => {
         return new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC' }).format(price);
     };
 
-    // Función para calcular el descuento final y el color de la etiqueta
     const getFinalDiscount = (productDiscount) => {
-    const isFrequentClient = user && user.categoria === 'Frecuente';
-    const clientDiscount = isFrequentClient ? frequentClientDiscount : 0;
-    
-    // El descuento final es el mayor entre el del producto y el del cliente
-    const finalDiscountPercentage = Math.max(productDiscount, clientDiscount);
-    
-    let tagColor = 'red'; // Por defecto, la etiqueta es roja (descuento del producto)
-    
-    // Condición para que la etiqueta sea verde:
-    // 1. El descuento del cliente debe ser mayor que 0.
-    // 2. El descuento del cliente debe ser el que se está aplicando (es decir, mayor que el del producto).
-    if (clientDiscount > 0 && clientDiscount > productDiscount) {
-        tagColor = 'green';
-    }
-    
-    return {
-        percentage: finalDiscountPercentage,
-        color: tagColor,
+        const isFrequentClient = user && user.categoria === 'Frecuente';
+        const clientDiscount = isFrequentClient ? frequentClientDiscount : 0;
+        const finalDiscountPercentage = Math.max(productDiscount, clientDiscount);
+        let tagColor = 'red';
+        if (clientDiscount > 0 && clientDiscount > productDiscount) {
+            tagColor = 'green';
+        }
+        return {
+            percentage: finalDiscountPercentage,
+            color: tagColor,
+        };
     };
-};
 
-    // --- RENDERIZADO CONDICIONAL ---
+    // --- RENDERIZADO ---
 
     if (loading) {
         return <div className="container"><p>Cargando productos...</p></div>;
@@ -86,15 +123,12 @@ const CategoryPage = () => {
         return <div className="container"><p>No se encontró la categoría.</p></div>;
     }
     
-    // --- RENDERIZADO PRINCIPAL ---
     return (
         <div className="container">
             <h2 className="section-title">Productos de {category.nombre}</h2>
-            
             <div className="product-grid">
                 {category.products && category.products.length > 0 ? (
                     category.products.map(product => {
-                        // Lógica de descuento para cada producto
                         const finalDiscountInfo = getFinalDiscount(product.descuento || 0);
                         const hasDiscount = finalDiscountInfo.percentage > 0;
                         const finalPrice = product.precio * (1 - finalDiscountInfo.percentage / 100);
@@ -109,11 +143,8 @@ const CategoryPage = () => {
                                         {finalDiscountInfo.percentage}% OFF
                                     </div>
                                 )}
-                                
                                 <img src={product.imagen_url || '/images/placeholder.png'} alt={product.nombre} />
-                                
                                 <h3>{product.nombre}</h3>
-                                
                                 <div className="price-container">
                                     {hasDiscount ? (
                                         <>
@@ -124,15 +155,18 @@ const CategoryPage = () => {
                                         <span className="price">{formatPrice(product.precio)}</span>
                                     )}
                                 </div>
-
                                 <p className="min-purchase">Mínimo: {product.minimo_compra} unidades</p>
-                                
                                 <div className="quantity-selector">
-                                    <input type="number" min={product.minimo_compra} defaultValue={product.minimo_compra} />
+                                    <input 
+                                        type="number" 
+                                        min={product.minimo_compra} 
+                                        value={quantities[product.id] || product.minimo_compra}
+                                        onChange={(e) => handleQuantityChange(product.id, e.target.value)}
+                                    />
                                 </div>
-
-                                <button className="btn add-to-cart-btn">Agregar al carrito</button>
-                                
+                                <button onClick={() => handleAddToCart(product)} className="btn add-to-cart-btn">
+                                    Agregar al carrito
+                                </button>
                                 <div className="product-details">
                                     <h4>Descripción:</h4>
                                     <p>{product.descripcion}</p>
@@ -146,7 +180,6 @@ const CategoryPage = () => {
                     <p>No hay productos en esta categoría.</p>
                 )}
             </div>
-            
             <Link to="/carrito" className="btn btn-warning go-to-cart-link">
                 🛒 Ir al carrito
             </Link>

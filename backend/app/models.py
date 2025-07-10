@@ -42,7 +42,7 @@ class User(Base):
     usuario = Column(String, unique=True, index=True, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     hashed_password = Column(String, nullable=False)
-    
+    telefono = Column(String, nullable=True) 
     categoria_cliente = Column(String, default="Regular")
     tipo_usuario = Column(String, default="Cliente")
 
