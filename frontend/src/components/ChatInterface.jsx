@@ -3,7 +3,7 @@ import AuthContext from '../context/AuthContext';
 import { Link } from 'react-router-dom';
 
 const ChatInterface = ({ initialMessage, onSendMessage, disabled }) => {
-    const [messages, setMessages] = useState([initialMessage]);
+    const [messages, setMessages] = useState(initialMessage ? [initialMessage] : []);
     const [inputValue, setInputValue] = useState('');
 
     const handleSend = () => {

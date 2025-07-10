@@ -907,3 +907,20 @@ select:focus {
     display: flex;
     gap: 1rem;
 }
+.form-status-message {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    align-self: stretch;
+    max-width: 100%;
+}
+.form-status-message.success {
+    background-color: #d4edda;
+    border: 1px solid #c3e6cb;
+    color: #155724;
+}
+.form-status-message.error {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    color: #721c24;
+}

@@ -2,58 +2,67 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import ChatInterface, { AuthWall } from '../components/ChatInterface';
-import EditableUserDataForm from '../components/EditableUserDataForm'; // <-- IMPORTA EL NUEVO FORMULARIO
+import EditableUserDataForm from '../components/EditableUserDataForm';
 import AuthContext from '../context/AuthContext';
 import CartContext from '../context/CartContext';
 import apiClient from '../api/axios';
 
 const CotizacionPage = () => {
-    const { user, login } = useContext(AuthContext); // Necesitamos 'login' para actualizar el token/contexto
+    const { user } = useContext(AuthContext);
     const { cartItems } = useContext(CartContext);
     
+    const [conversationState, setConversationState] = useState('confirm_data');
     const [isEditingData, setIsEditingData] = useState(false);
-    
-    // Función que se llama cuando se guarda el formulario de edición
+    // --- NUEVO ESTADO PARA MENSAJES DE FORMULARIO ---
+    const [formMessage, setFormMessage] = useState(null);
+
     const handleDataSave = async (updatedData) => {
-        console.log("Datos a actualizar:", updatedData);
+        setFormMessage({ text: 'Guardando...', type: 'loading' });
         try {
-            // Llama a la API para actualizar al usuario
-            const response = await apiClient.put(`/users/${user.id}`, updatedData);
+            await apiClient.put(`/users/me/contact`, updatedData);
             
-            // Si la actualización es exitosa, podemos hacer dos cosas:
-            // 1. Refrescar los datos del usuario pidiendo un nuevo token (más complejo)
-            // 2. O simplemente continuar el flujo. Por ahora, hacemos lo segundo.
-            alert("¡Datos actualizados! Hemos enviado tu solicitud de cotización.");
-            setIsEditingData(false); // Oculta el formulario de edición
+            // --- LÓGICA DE CONFIRMACIÓN EN EL CHAT ---
+            const successMessage = (
+                <>
+                    <p style={{color: 'green', fontWeight: 'bold'}}>✔ ¡Datos actualizados con éxito!</p>
+                    <p>Tu solicitud de cotización ha sido enviada con la siguiente información:</p>
+                    <p><strong>Correo:</strong> {updatedData.email}</p>
+                    <p><strong>Teléfono:</strong> {updatedData.telefono}</p>
+                    <p><strong>Dirección:</strong> {updatedData.direccion}</p>
+                </>
+            );
+            setFormMessage({ text: successMessage, type: 'success' });
+            setIsEditingData(false); // Opcional: Ocultar el formulario después de guardar
             
-            // Idealmente aquí se debería actualizar el AuthContext con los nuevos datos
+            // TODO: En un futuro, deberías actualizar el AuthContext con los nuevos datos.
+
         } catch (error) {
             console.error("Error al actualizar los datos del usuario:", error);
-            alert("Hubo un error al guardar tus datos. Por favor, inténtalo de nuevo.");
+            const errorMessage = "Hubo un error al guardar tus datos. Por favor, inténtalo de nuevo.";
+            setFormMessage({ text: errorMessage, type: 'error' });
         }
     };
 
-    // Lógica del "chatbot"
     const handleQuoteMessage = (inputValue, setMessages) => {
         const input = inputValue.toLowerCase();
         if (input.includes('si') || input.includes('sí')) {
             setMessages(prev => [...prev, { text: "¡Perfecto! Hemos enviado tu solicitud de cotización. Un agente te contactará pronto.", sender: 'bot' }]);
+            setConversationState('final_message');
         } else {
-            // En lugar de hacer más preguntas, activamos el modo de edición
             setIsEditingData(true);
         }
     };
-
     const getInitialMessage = () => {
-        if (!user) return { text: "", sender: 'bot' };
+        if (!user) {
+            // En lugar de devolver un objeto vacío, no devolvemos nada.
+            // El ChatInterface se encargará de esto.
+            return null; 
+        }
         return {
             text: (
                 <>
-                    <p>Hola, {user.nombre}. Para continuar, por favor confirma que estos son tus datos de contacto:</p>
-                    <p><strong>Correo:</strong> {user.email}</p>
-                    <p><strong>Teléfono:</strong> {user.telefono}</p>
-                    <p><strong>Dirección:</strong> {user.direccion}</p>
-                    <p>¿Son correctos? (si/no)</p>
+                    <p>Hola, {user.nombre}. ...</p>
+                    {/* ... */}
                 </>
             ),
             sender: 'bot'
@@ -65,7 +74,7 @@ const CotizacionPage = () => {
             <h2 className="admin-panel-title">🤖 Multiva Assist - Cotización</h2>
             <h3>📝 Pedido Cargado:</h3>
             <div className="table-responsive-wrapper">
-                {/* (Pega aquí el código de la tabla de tu CartPage.jsx) */}
+                {/* (Asegúrate de tener aquí el código de la tabla del carrito) */}
             </div>
             
             <div style={{marginTop: '2rem'}}>
@@ -73,12 +82,12 @@ const CotizacionPage = () => {
                     <AuthWall />
                 ) : (
                     <>
-                        {/* El chat solo se muestra si NO estamos en modo de edición */}
-                        {!isEditingData && (
+                        {/* El chat inicial solo se muestra si NO estamos en modo de edición */}
+                        {!isEditingData && conversationState !== 'final_message' && (
                             <ChatInterface
                                 initialMessage={getInitialMessage()}
                                 onSendMessage={handleQuoteMessage}
-                                disabled={!user}
+                                disabled={!user || conversationState === 'final_message'}
                             />
                         )}
                         
@@ -95,6 +104,24 @@ const CotizacionPage = () => {
                                         onSave={handleDataSave}
                                         onCancel={() => setIsEditingData(false)}
                                     />
+                                    {/* --- MOSTRAR MENSAJE DE ESTADO DEL FORMULARIO --- */}
+                                    {formMessage && (
+                                        <div className={`bot-message form-status-message ${formMessage.type}`}>
+                                            {formMessage.text}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Muestra el mensaje final después de la conversación o actualización */}
+                        {conversationState === 'final_message' && (
+                             <div className="chat-container">
+                                <div className="chat-box">
+                                    {/* ... mensajes anteriores ... */}
+                                    <div className="bot-message">
+                                        ¡Perfecto! Hemos enviado tu solicitud de cotización. Un agente te contactará pronto.
+                                    </div>
                                 </div>
                             </div>
                         )}

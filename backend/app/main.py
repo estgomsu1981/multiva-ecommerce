@@ -203,3 +203,8 @@ def update_my_contact_info(
 ):
     # Usamos el crud.update_user que ya existe, pasándole el ID del usuario logueado
     return crud.update_user(db, user_id=current_user.id, user_update=contact_data)
+# en main.py
+
+@app.get("/users/me", response_model=schemas.User, tags=["Users"])
+def read_users_me(current_user: models.User = Depends(security.get_current_user)):
+    return current_user
