@@ -74,6 +74,7 @@ const GestionUsuarios = () => {
                             <th>Correo</th>
                             <th>Usuario</th>
                             <th>Dirección</th>
+                            <th>Teléfono</th>
                             <th>Categoría Cliente</th>
                             <th>Tipo Usuario</th>
                             <th>Acciones</th>
@@ -92,6 +93,7 @@ const GestionUsuarios = () => {
                                             <td><input type="email" name="email" value={formData.email} onChange={handleChange} /></td>
                                             <td><input type="text" name="usuario" value={formData.usuario} onChange={handleChange} /></td>
                                             <td><input type="text" name="direccion" value={formData.direccion} onChange={handleChange} /></td>
+                                            <td><input type="tel" name="telefono" value={formData.telefono} onChange={handleChange} /></td>
                                             <td>
                                                 <select name="categoria_cliente" value={formData.categoria_cliente} onChange={handleChange}>
                                                     <option value="Regular">Regular</option>
@@ -116,6 +118,7 @@ const GestionUsuarios = () => {
                                             <td>{user.email}</td>
                                             <td>{user.usuario}</td>
                                             <td>{user.direccion}</td>
+                                            <td>{user.telefono}</td>
                                             <td>{user.categoria_cliente}</td>
                                             <td>{user.tipo_usuario}</td>
                                             <td>

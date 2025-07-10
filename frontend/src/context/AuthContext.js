@@ -30,7 +30,10 @@ export const AuthProvider = ({ children }) => {
                     username: decodedToken.sub,
                     nombre: decodedToken.nombre,
                     rol: decodedToken.rol || 'Cliente', 
-                    categoria: decodedToken.categoria_cliente || 'Regular' 
+                    categoria: decodedToken.categoria_cliente || 'Regular',
+                    email: decodedToken.email,
+                    direccion: decodedToken.direccion,
+                    telefono: decodedToken.telefono
                 });
 
                     if ((decodedToken.categoria_cliente || 'Regular') === 'Frecuente') {

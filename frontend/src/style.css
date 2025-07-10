@@ -368,6 +368,7 @@ form input[type="text"],
 form input[type="email"],
 form input[type="password"],
 form input[type="number"],
+form input[type="tel"],
 form textarea,
 form select {
     display: block;

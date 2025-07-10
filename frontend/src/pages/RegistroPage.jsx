@@ -10,6 +10,7 @@ const RegistroPage = () => {
         nombre: '',
         apellidos: '',
         direccion: '',
+        telefono: '',
         usuario: '',
         email: '',
         password: '',
@@ -50,15 +51,19 @@ const RegistroPage = () => {
 
                 <label htmlFor="direccion">Dirección</label>
                 <input id="direccion" name="direccion" type="text" onChange={handleChange} required />
+                
+                <label htmlFor="telefono">Teléfono</label>
+                <input id="telefono" name="telefono" type="tel" onChange={handleChange} required />    
 
                 <label htmlFor="usuario">Nombre de Usuario</label>
-                <input id="usuario" name="usuario" type="text" onChange={handleChange} placeholder="Ej: usuario123" required />
+                <input id="usuario" name="usuario" type="text" onChange={handleChange} placeholder="Ejemplo: usuario123" required />
 
                 <label htmlFor="email">Correo electrónico</label>
                 <input id="email" name="email" type="email" onChange={handleChange} required />
 
                 <label htmlFor="password">Contraseña</label>
                 <input id="password" name="password" type="password" onChange={handleChange} required />
+     
 
                 {/* El botón ya tiene la clase .btn y .btn-primary, que están estilizadas */}
                 <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Registrarse</button>
