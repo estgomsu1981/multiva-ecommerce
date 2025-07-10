@@ -1,21 +1,16 @@
-import React, { useContext } from 'react';
+// frontend/src/pages/AyudaPage.jsx
+import React, { useState, useEffect, useContext } from 'react'; // <-- Añade useState y useEffect
 import ChatInterface, { AuthWall } from '../components/ChatInterface';
 import AuthContext from '../context/AuthContext';
+import { Link } from 'react-router-dom'; // Importa Link
 
 const AyudaPage = () => {
     const { user } = useContext(AuthContext);
 
-    const handleHelpMessage = (inputValue, setMessages) => {
-        // Lógica de respuesta del bot de ayuda
-        setTimeout(() => {
-            let botResponse = "Gracias por tu pregunta. Un agente te contactará pronto. También puedes visitar nuestra sección de Preguntas Frecuentes.";
-            if (inputValue.toLowerCase().includes('envío')) {
-                botResponse = "Realizamos envíos a todo el país. Puedes ver más detalles en la página de Preguntas Frecuentes.";
-            }
-            setMessages(prev => [...prev, { text: botResponse, sender: 'bot' }]);
-        }, 1000);
-    };
+    // --- ESTADO PARA LOS MENSAJES ---
+    const [messages, setMessages] = useState([]);
 
+    // --- MENSAJE INICIAL ---
     const initialBotMessage = {
         text: (
             <>
@@ -25,14 +20,46 @@ const AyudaPage = () => {
         sender: 'bot'
     };
 
+    // --- INICIALIZAR EL CHAT ---
+    // Usamos useEffect para establecer el mensaje inicial solo una vez
+    useEffect(() => {
+        setMessages([initialBotMessage]);
+    }, []); // El array vacío asegura que se ejecute solo una vez al montar
+
+    // --- LÓGICA DE RESPUESTA ---
+    const handleHelpMessage = (userInput) => {
+        // Añadimos el mensaje del usuario al chat
+        const userMessage = { text: userInput, sender: 'user' };
+        setMessages(prev => [...prev, userMessage]);
+
+        // Simulamos la respuesta del bot
+        setTimeout(() => {
+            let botResponseText = "Gracias por tu pregunta. Un agente te contactará pronto. También puedes visitar nuestra sección de Preguntas Frecuentes.";
+            if (userInput.toLowerCase().includes('envío')) {
+                botResponseText = "Realizamos envíos a todo el país. Puedes ver más detalles en la página de Preguntas Frecuentes.";
+            } else if (userInput.toLowerCase().includes('pago')) {
+                botResponseText = "Aceptamos transferencias bancarias SINPE. Encontrarás los detalles durante el proceso de cotización.";
+            }
+            const botResponse = { text: botResponseText, sender: 'bot' };
+            setMessages(prev => [...prev, botResponse]);
+        }, 1000);
+    };
+
     return (
         <div className="chat-page-container">
             <h2 className="admin-panel-title">🤖 Multiva Assist - Centro de Ayuda</h2>
-            {!user && <AuthWall />}
+            
+            {!user && (
+                <AuthWall>
+                    <p>Para una atención personalizada, por favor <Link to="/login">inicia sesión</Link>.</p>
+                </AuthWall>
+            )}
+
             <ChatInterface
-                initialMessage={initialBotMessage}
+                messages={messages} // <-- Ahora pasamos el array de mensajes del estado
                 onSendMessage={handleHelpMessage}
-                disabled={!user} // El chat se deshabilita si no hay usuario
+                // Permitimos chatear aunque no esté logueado, pero el AuthWall lo sugiere
+                disabled={false} 
             />
         </div>
     );

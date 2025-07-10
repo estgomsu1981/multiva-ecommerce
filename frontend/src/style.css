@@ -836,6 +836,10 @@ select:focus {
     align-self: flex-start;
 }
 
+.user-message,
+.user-message em,
+.user-message strong {
+}
 .user-message {
     background-color: var(--primary-color);
     color: var(--white);
