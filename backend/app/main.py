@@ -14,6 +14,9 @@ from . import security
 import cloudinary
 import cloudinary.uploader
 
+import httpx
+from typing import List, Dict, Any
+
 configure_cloudinary()
 
 # Esta línea es crucial: crea la tabla en tu base de datos si no existe.
@@ -208,3 +211,28 @@ def update_my_contact_info(
 @app.get("/users/me", response_model=schemas.User, tags=["Users"])
 def read_users_me(current_user: models.User = Depends(security.get_current_user)):
     return current_user
+
+@app.post("/chat/completions", tags=["Chat"])
+async def chat_with_bot(messages: List[Dict[str, Any]]):
+    """
+    Endpoint proxy para hablar con OpenRouter de forma segura.
+    Recibe el historial de mensajes y lo reenvía.
+    """
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(
+                "https://openrouter.ai/api/v1/chat/completions",
+                json={
+                    "model": "mistralai/mistral-7b-instruct",
+                    "messages": messages,
+                },
+                headers={
+                    "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
+                }
+            )
+            response.raise_for_status() # Lanza un error si la respuesta es 4xx o 5xx
+            return response.json()
+        except httpx.HTTPStatusError as e:
+            raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
