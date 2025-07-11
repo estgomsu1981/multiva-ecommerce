@@ -1,88 +1,67 @@
-// frontend/src/pages/AyudaPage.jsx
-import React, { useState, useEffect, useContext } from 'react'; // <-- Añade useState y useEffect
+import React, { useState, useEffect, useContext } from 'react';
+import { Link } from 'react-router-dom';
 import ChatInterface, { AuthWall } from '../components/ChatInterface';
 import AuthContext from '../context/AuthContext';
-import { Link } from 'react-router-dom'; // Importa Link
-import apiClient from '../api/axios'; // Importa apiClient para las solicitudes
+import apiClient from '../api/axios';
 
 const AyudaPage = () => {
     const { user } = useContext(AuthContext);
-
-    // --- ESTADO PARA LOS MENSAJES ---
     const [messages, setMessages] = useState([]);
+    const [isBotTyping, setIsBotTyping] = useState(false); // Para mostrar "Bot está escribiendo..."
 
-    // --- MENSAJE INICIAL ---
-    const initialBotMessage = {
-        text: (
-            <>
-                Hola 👋, soy <strong>Multiva Assist</strong>. Estoy aquí para resolver cualquier duda que tengas sobre nuestros productos, servicios o procesos de compra. ¿En qué te puedo ayudar?
-            </>
-        ),
-        sender: 'bot'
-    };
-
-    // --- INICIALIZAR EL CHAT ---
-    // Usamos useEffect para establecer el mensaje inicial solo una vez
+    // Establece el mensaje de bienvenida inicial del bot
     useEffect(() => {
-        setMessages([initialBotMessage]);
-    }, []); // El array vacío asegura que se ejecute solo una vez al montar
-
-    // --- LÓGICA DE RESPUESTA ---
-    const handleHelpMessage = (userInput) => {
-        // Añadimos el mensaje del usuario al chat
-        const userMessage = { text: userInput, sender: 'user' };
-        setMessages(prevMessages => [...prevMessages, userMessage]);
-
-        // --- LLAMADA A LA API DE OPENROUTER ---
-        const sendMessageToOpenRouter = async (messagesToSend) => {
-            try {
-                const response = await apiClient.post(
-                    'https://openrouter.ai/api/v1/chat/completions',
-                    {
-                        model: 'mistralai/mistral-7b-instruct',
-                        messages: [
-                            {
-                                role: 'system',
-                                content: "Sos Multiva Assist, un asistente de ventas especializado en responder preguntas sobre una ferretería en Costa Rica.  Puedes responder preguntas sobre envíos, métodos de pago (transferencia bancaria, SINPE), productos, la empresa, etc. Si no sabes la respuesta exacta, ofrece información general o sugiere contactar a un agente.",
-                            },
-                            ...messagesToSend.map(msg => ({ role: msg.sender, content: msg.text })),
-                        ],
-                    },
-                    {
-                        headers: {
-                            'Authorization': `Bearer ${process.env.REACT_APP_OPENROUTER_API_KEY}`,  
-                            'Content-Type': 'application/json',
-                            'HTTP-Referer': 'http://localhost',  // O tu URL
-                            'X-Title': 'Asistente Ferretería',
-                        },
-                    }
-                );
-
-                // Procesar la respuesta del modelo
-                const botResponseText = response.data.choices[0].message.content;
-                const botResponse = { text: botResponseText, sender: 'bot' };
-                setMessages(prevMessages => [...prevMessages, botResponse]);
-
-            } catch (error) {
-                console.error("Error en la comunicación con OpenRouter:", error);
-                // En caso de error, mostramos un mensaje genérico al usuario
-                const errorResponse = { text: "Lo siento, hubo un problema. Por favor, intenta de nuevo más tarde.", sender: 'bot' };
-                setMessages(prevMessages => [...prevMessages, errorResponse]);
-            }
+        const initialBotMessage = {
+            text: (
+                <>
+                    Hola 👋, soy <strong>Multiva Assist</strong>. Estoy aquí para resolver cualquier duda que tengas sobre nuestros productos, servicios o procesos de compra. ¿En qué te puedo ayudar?
+                </>
+            ),
+            sender: 'bot'
         };
+        setMessages([initialBotMessage]);
+    }, []);
 
-        // --- Crear un array limpio de mensajes para enviar ---
-        const messagesToSend = [...messages, userMessage].map(msg => ({
-            role: msg.sender,
-            content: msg.text,
+    // Función que se llama cuando el usuario envía un mensaje
+    const handleHelpMessage = async (userInput) => {
+        const userMessage = { text: userInput, sender: 'user' };
+        
+        // Añade el mensaje del usuario a la conversación
+        const currentConversation = [...messages, userMessage];
+        setMessages(currentConversation);
+        setIsBotTyping(true); // El bot empieza a "escribir"
+
+        // Preparamos el historial para enviar a nuestra API proxy
+        const messagesForAPI = currentConversation.map(msg => ({
+            role: msg.sender === 'bot' ? 'assistant' : 'user',
+            // Aseguramos que el contenido sea un string
+            content: typeof msg.text === 'string' ? msg.text : 'Consulta del usuario', 
         }));
+        
+        try {
+            // La petición ahora va a nuestro propio backend
+            const response = await apiClient.post('/chat/completions', messagesForAPI);
 
-        sendMessageToOpenRouter(messagesToSend);
+            const botResponseText = response.data.choices[0].message.content;
+            const botResponse = { text: botResponseText, sender: 'bot' };
+            
+            // Añade la respuesta del bot a la conversación
+            setMessages(prev => [...prev, botResponse]);
+
+        } catch (error) {
+            console.error("Error en la comunicación con el backend del chat:", error);
+            const errorResponse = { text: "Lo siento, hubo un problema. Por favor, intenta de nuevo más tarde.", sender: 'bot' };
+            setMessages(prev => [...prev, errorResponse]);
+        } finally {
+            setIsBotTyping(false); // El bot deja de "escribir"
+        }
     };
+
     return (
         <div className="chat-page-container">
             <h2 className="admin-panel-title">🤖 Multiva Assist - Centro de Ayuda</h2>
             
+            {/* Muestra un aviso si el usuario no está logueado, pero no bloquea el chat */}
             {!user && (
                 <AuthWall>
                     <p>Para una atención personalizada, por favor <Link to="/login">inicia sesión</Link>.</p>
@@ -90,10 +69,10 @@ const AyudaPage = () => {
             )}
 
             <ChatInterface
-                messages={messages} // <-- Ahora pasamos el array de mensajes del estado
+                messages={messages}
                 onSendMessage={handleHelpMessage}
-                // Permitimos chatear aunque no esté logueado, pero el AuthWall lo sugiere
-                disabled={false} 
+                disabled={isBotTyping} // Deshabilita el input mientras el bot responde
+                placeholder={isBotTyping ? "Multiva Assist está escribiendo..." : "Escribe tu pregunta..."}
             />
         </div>
     );
