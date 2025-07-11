@@ -214,10 +214,24 @@ def read_users_me(current_user: models.User = Depends(security.get_current_user)
 
 @app.post("/chat/completions", tags=["Chat"])
 async def chat_with_bot(messages: List[Dict[str, Any]]):
-    """
-    Endpoint proxy para hablar con OpenRouter de forma segura.
-    Recibe el historial de mensajes y lo reenvía.
-    """
+    
+    # --- LOGS DE DEPURACIÓN ---
+    print("--- INICIANDO LLAMADA A OPENROUTER ---")
+    
+    # 1. Verificamos si la API Key se está leyendo correctamente desde la config
+    api_key = settings.OPENROUTER_API_KEY
+    if api_key:
+        # Imprimimos solo una parte de la clave por seguridad
+        print(f"API Key encontrada, comenzando con: {api_key[:8]}...")
+    else:
+        print("¡ERROR: OPENROUTER_API_KEY no fue encontrada en la configuración!")
+        raise HTTPException(status_code=500, detail="API Key de OpenRouter no configurada en el servidor.")
+
+    # 2. Imprimimos los mensajes que estamos a punto de enviar
+    print("Mensajes a enviar a OpenRouter:", messages)
+    # --------------------------
+
+    
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(
@@ -230,9 +244,15 @@ async def chat_with_bot(messages: List[Dict[str, Any]]):
                     "Authorization": f"Bearer {settings.OPENROUTER_API_KEY}",
                 }
             )
+            print(f"Respuesta de OpenRouter - Status: {response.status_code}")
+
             response.raise_for_status() # Lanza un error si la respuesta es 4xx o 5xx
             return response.json()
+            print("Respuesta de OpenRouter - Body:", response_data)
+        
         except httpx.HTTPStatusError as e:
+            print(f"ERROR HTTP de OpenRouter: {e.response.status_code} - {e.response.text}")
             raise HTTPException(status_code=e.response.status_code, detail=e.response.text)
         except Exception as e:
+            print(f"ERROR GENERAL al contactar OpenRouter: {str(e)}")
             raise HTTPException(status_code=500, detail=str(e))

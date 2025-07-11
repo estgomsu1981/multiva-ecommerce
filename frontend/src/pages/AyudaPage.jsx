@@ -50,7 +50,7 @@ const AyudaPage = () => {
                     },
                     {
                         headers: {
-                            'Authorization': `Bearer ${process.env.REACT_APP_OPENROUTER_API_KEY}`,  // Reemplaza con tu API key real de OpenRouter
+                            'Authorization': `Bearer ${process.env.REACT_APP_OPENROUTER_API_KEY}`,  
                             'Content-Type': 'application/json',
                             'HTTP-Referer': 'http://localhost',  // O tu URL
                             'X-Title': 'Asistente Ferretería',
