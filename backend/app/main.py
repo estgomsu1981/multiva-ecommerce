@@ -237,7 +237,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]]):
             response = await client.post(
                 "https://openrouter.ai/api/v1/chat/completions",
                 json={
-                    "model": "openrouter/cypher-alpha",
+                    "model": "openrouter/cypher-alpha:free",
                     "messages": messages,
                 },
                 headers={
