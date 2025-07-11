@@ -14,12 +14,15 @@ const apiClient = axios.create({
 // Esta función se ejecutará ANTES de que cada petición sea enviada.
 apiClient.interceptors.request.use(
     (config) => {
-        // Obtenemos el token del localStorage en el momento de la petición
+        // --- Obtenemos el token del localStorage JUSTO ANTES de la petición ---
         const token = localStorage.getItem('accessToken');
         
-        // Si el token existe, lo añadimos a la cabecera de autorización
+        // --- Si el token existe, lo añadimos a la cabecera de autorización ---
         if (token) {
             config.headers['Authorization'] = `Bearer ${token}`;
+            // --- Añadido: Imprimir el token que se va a enviar ---
+            console.log("Token añadido a la solicitud:", token);
+            // ----------------------------------------------------
         }
         
         // Devolvemos la configuración modificada para que la petición continúe
