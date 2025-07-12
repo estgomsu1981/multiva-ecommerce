@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, ForeignKey,Text, DateTime 
 from sqlalchemy.orm import relationship
 from .database import Base
+from sqlalchemy.sql import fun
 
 class Category(Base):
     __tablename__ = "categories"
@@ -50,3 +51,14 @@ class Configuracion(Base):
     __tablename__ = "configuracion"
     clave = Column(String, primary_key=True, index=True)
     valor = Column(String, nullable=True)
+
+class PromptHistorial(Base):
+    __tablename__ = "prompt_historial"
+
+    id = Column(Integer, primary_key=True, index=True)
+    prompt_text = Column(Text, nullable=False)
+    # El prompt_activo es el que se usa actualmente. Solo habrá uno.
+    # Podríamos usar un booleano, pero un string es más flexible.
+    clave = Column(String, unique=True, default='prompt_activo_chatbot')
+    timestamp = Column(DateTime(timezone=True), server_default=func.now())
+    modificado_por = Column(String) # Guardaremos el nombre de usuario del admin

@@ -82,16 +82,17 @@ def update_my_contact_info(
 # ==========================================================================
 
 @app.post("/chat/completions", tags=["Chat"])
-async def chat_with_bot(messages: List[Dict[str, Any]]):
+async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(get_db)):
     api_key = settings.OPENROUTER_API_KEY
+    active_prompt = crud.get_active_prompt(db)
     if not api_key:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="API Key de OpenRouter no configurada.")
     
     system_prompt = {
         "role": "system",
-        "content": "Sos Multiva Assist, un asistente de ventas amigable y servicial para una ferretería en Costa Rica. Respondes preguntas sobre productos, envíos, métodos de pago (transferencia bancaria, SINPE), y la empresa. Si no sabes algo, ofreces ayuda general y sugieres contactar a un agente humano. Eres conciso y directo. IMPORTANTE: Responde siempre y únicamente en español, sin importar el idioma en que te escriba el usuario."
+        "content": active_prompt.prompt_text 
     }
-    
+
     full_messages = [system_prompt] + messages
 
     request_data = {
@@ -179,3 +180,26 @@ def read_configuracion(clave: str, db: Session = Depends(get_db)):
 @app.put("/configuracion/{clave}", response_model=schemas.Configuracion, tags=["Configuración"])
 def update_configuracion(clave: str, valor: str, db: Session = Depends(get_db)):
     return crud.set_configuracion(db, clave=clave, valor=valor)
+
+@app.get("/admin/prompt", response_model=schemas.PromptHistorial, tags=["Admin: Prompt"])
+def get_current_prompt(db: Session = Depends(get_db)):
+    # TODO: Proteger esta ruta
+    return crud.get_active_prompt(db)
+
+@app.put("/admin/prompt", response_model=schemas.PromptHistorial, tags=["Admin: Prompt"])
+def set_current_prompt(
+    prompt_data: schemas.PromptHistorialBase, # Solo necesitamos el texto del prompt
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_user)
+):
+    # TODO: Proteger esta ruta para admins
+    prompt_to_create = schemas.PromptHistorialCreate(
+        prompt_text=prompt_data.prompt_text,
+        modificado_por=current_user.usuario
+    )
+    return crud.update_active_prompt(db, prompt_data=prompt_to_create)
+
+@app.get("/admin/prompt/history", response_model=List[schemas.PromptHistorial], tags=["Admin: Prompt"])
+def get_prompt_history_list(db: Session = Depends(get_db)):
+    # TODO: Proteger esta ruta
+    return crud.get_prompt_history(db)

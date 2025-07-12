@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
+from datetime import datetime 
 
 # ==========================================================================
 # Esquemas para Productos
@@ -91,3 +92,16 @@ class UserContactUpdate(BaseModel):
     email: Optional[EmailStr] = None
     telefono: Optional[str] = None
     direccion: Optional[str] = None
+
+class PromptHistorialBase(BaseModel):
+    prompt_text: str
+
+class PromptHistorialCreate(PromptHistorialBase):
+    modificado_por: str
+
+class PromptHistorial(PromptHistorialBase):
+    id: int
+    timestamp: datetime
+    modificado_por: str
+    class Config:
+        from_attributes = True
