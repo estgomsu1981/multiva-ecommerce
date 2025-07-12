@@ -5,7 +5,9 @@ from typing import List, Dict, Any, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
+import json
 import httpx
+from typing import List, Dict, Any
 
 # --- Imports de la Aplicación ---
 from . import crud, models, schemas, security
@@ -85,89 +87,62 @@ def update_my_contact_info(
 
 import json # <-- Asegúrate de que este import esté al principio del archivo
 
+
 @app.post("/chat/completions", tags=["Chat"])
 async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(get_db)):
-    api_key = settings.OPENROUTER_API_KEY
+    # --- AHORA USAMOS LA CLAVE DE GROQ ---
+    api_key = settings.GROQ_API_KEY
     if not api_key:
-        raise HTTPException(status_code=500, detail="API Key de OpenRouter no configurada.")
+        raise HTTPException(status_code=500, detail="API Key de Groq no configurada.")
     
-    # --- LÓGICA DE AGENTE CON PROMPT DINÁMICO ---
-
-    # 1. Obtener el prompt activo desde la base de datos
     active_prompt_object = crud.get_active_prompt(db)
-    system_prompt_text = active_prompt_object.prompt_text
-
-    # 2. Descripción de la herramienta para el LLM
+    system_prompt = { "role": "system", "content": active_prompt_object.prompt_text }
+    
     tools = [
-        {
-            "type": "function",
-            "function": {
-                "name": "buscar_producto",
-                "description": "Busca en la base de datos de la ferretería y devuelve hasta 5 productos que coincidan. Útil para encontrar productos, precios o especificaciones.",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "q": {
-                            "type": "string",
-                            "description": "Término de búsqueda, por ejemplo 'martillo', 'cemento gris', 'taladro 18v'."
-                        }
-                    },
-                    "required": ["q"]
-                }
-            }
-        }
+        # ... (la definición de la herramienta 'buscar_producto' no cambia)
     ]
-
-    # 3. Construir el prompt del sistema usando el texto de la base de datos
-    system_prompt = {
-        "role": "system",
-        "content": system_prompt_text
-    }
     
     full_messages = [system_prompt] + messages
     
     async with httpx.AsyncClient() as client:
         try:
-            # 4. Primera llamada al LLM
+            # --- PRIMERA LLAMADA A GROQ ---
             response = await client.post(
-                "https://openrouter.ai/api/v1/chat/completions",
+                "https://api.groq.com/openai/v1/chat/completions", # <-- NUEVA URL
                 json={
-                    "model": "openrouter/cypher-alpha:free",
+                    "model": "llama3-8b-8192", # <-- NUEVO MODELO (Llama 3 8B es una excelente opción gratuita)
                     "messages": full_messages,
-                    "tools": tools
+                    "tools": tools,
+                    "tool_choice": "auto" # Indicamos a Groq que puede elegir usar una herramienta
                 },
                 headers={"Authorization": f"Bearer {api_key}"}
             )
             response.raise_for_status()
             response_data = response.json()
             
-            # 5. Verificamos si el LLM quiere usar una herramienta
             bot_message = response_data['choices'][0]['message']
             if bot_message.get("tool_calls"):
                 tool_call = bot_message["tool_calls"][0]
-                tool_name = tool_call["function"]["name"]
-                
-                if tool_name == "buscar_producto":
-                    tool_args = json.loads(tool_call["function"]["arguments"])
-                    search_term = tool_args.get("q")
+                if tool_call["function"]["name"] == "buscar_producto":
+                    # ... (lógica para ejecutar la herramienta)
+                    search_results = crud.search_products_by_term(...)
                     
-                    # 6. Ejecutamos la búsqueda en nuestra base de datos
-                    print(f"LLM quiere buscar: '{search_term}'")
-                    search_results = crud.search_products_by_term(db, search_term=search_term)
-                    
-                    # 7. Añadimos la respuesta de la herramienta a la conversación
                     tool_response_message = {
                         "role": "tool",
                         "tool_call_id": tool_call["id"],
-                        "content": json.dumps(search_results, ensure_ascii=False) # Usamos json.dumps para formatear correctamente la lista de productos
+                        "name": tool_call["function"]["name"],
+                        "content": json.dumps(search_results, ensure_ascii=False)
                     }
                     full_messages.append(bot_message)
                     full_messages.append(tool_response_message)
                     
-                    # 8. Hacemos una SEGUNDA llamada al LLM, ahora con los resultados de la búsqueda
+                    # --- SEGUNDA LLAMADA A GROQ ---
                     final_response = await client.post(
-                        "https://openrouter.ai/api/v1/chat/completions",
-                        json={"model": "openrouter/cypher-alpha:free", "messages": full_messages},
+                        "https://api.groq.com/openai/v1/chat/completions", # <-- NUEVA URL
+                        json={
+                            "model": "llama3-8b-8192", # <-- NUEVO MODELO
+                            "messages": full_messages
+                        },
                         headers={"Authorization": f"Bearer {api_key}"}
                     )
                     final_response.raise_for_status()
@@ -175,6 +150,9 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
             
             return response_data
 
+        except httpx.HTTPStatusError as e:
+            print(f"Error HTTP de Groq: {e.response.status_code} - {e.response.text}")
+            raise HTTPException(status_code=e.response.status_code, detail=f"Error de la API externa: {e.response.text}")
         except Exception as e:
             print(f"Error en el flujo del chat: {e}")
             raise HTTPException(status_code=500, detail="Error procesando la solicitud del chat.")

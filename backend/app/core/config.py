@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     CLOUDINARY_CLOUD_NAME: str
     CLOUDINARY_API_KEY: str
     CLOUDINARY_API_SECRET: str
-    OPENROUTER_API_KEY: str
+    GROQ_API_KEY: str
 
     # --- NUEVAS VARIABLES PARA TOKENS (JWT) ---
     SECRET_KEY: str = "una_clave_secreta_muy_larga_y_dificil_de_adivinar"
