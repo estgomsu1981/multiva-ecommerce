@@ -27,7 +27,12 @@ const AdminPanelPage = () => {
                             <li><Link to="/admin/usuarios">› Administrar Usuarios/Clientes</Link></li>
                         </ul>
                     </li>
-                    
+                    <li>
+                        <div className="admin-menu-header">Gestión de AI</div>
+                        <ul className="admin-submenu">
+                            <li><Link to="/admin/prompt">› Administrar Prompt del ChatBot</Link></li>
+                        </ul>
+                    </li>
                     {/* Botón para volver al sitio principal */}
                     <li>
                         <Link to="/" className="admin-menu-action">Volver al Sitio Principal</Link>

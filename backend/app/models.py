@@ -57,8 +57,5 @@ class PromptHistorial(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     prompt_text = Column(Text, nullable=False)
-    # El prompt_activo es el que se usa actualmente. Solo habrá uno.
-    # Podríamos usar un booleano, pero un string es más flexible.
-    clave = Column(String, unique=True, default='prompt_activo_chatbot')
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     modificado_por = Column(String) # Guardaremos el nombre de usuario del admin

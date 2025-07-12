@@ -188,16 +188,15 @@ def get_current_prompt(db: Session = Depends(get_db)):
 
 @app.put("/admin/prompt", response_model=schemas.PromptHistorial, tags=["Admin: Prompt"])
 def set_current_prompt(
-    prompt_data: schemas.PromptHistorialBase, # Solo necesitamos el texto del prompt
+    prompt_data: schemas.PromptHistorialBase,
     db: Session = Depends(get_db),
     current_user: models.User = Depends(security.get_current_user)
 ):
-    # TODO: Proteger esta ruta para admins
     prompt_to_create = schemas.PromptHistorialCreate(
         prompt_text=prompt_data.prompt_text,
         modificado_por=current_user.usuario
     )
-    return crud.update_active_prompt(db, prompt_data=prompt_to_create)
+    return crud.create_new_prompt(db, prompt_data=prompt_to_create)
 
 @app.get("/admin/prompt/history", response_model=List[schemas.PromptHistorial], tags=["Admin: Prompt"])
 def get_prompt_history_list(db: Session = Depends(get_db)):

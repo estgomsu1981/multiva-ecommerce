@@ -167,15 +167,16 @@ def get_discounted_products(db: Session, skip: int = 0, limit: int = 100):
     # Usamos joinedload para traer la categoría, igual que en get_products
     return db.query(models.Product).options(joinedload(models.Product.category)).filter(models.Product.descuento > 0).offset(skip).limit(limit).all()
 
+
 def get_active_prompt(db: Session):
-    # Busca el prompt con la clave 'prompt_activo_chatbot'.
-    # Si no existe, crea uno por defecto.
-    active_prompt = db.query(models.PromptHistorial).filter(models.PromptHistorial.clave == 'prompt_activo_chatbot').first()
+    # El prompt activo es simplemente el último registro creado, ordenado por timestamp descendente.
+    active_prompt = db.query(models.PromptHistorial).order_by(models.PromptHistorial.timestamp.desc()).first()
+    
     if not active_prompt:
-        default_text = "Sos Multiva Assist... (tu prompt por defecto aquí)"
+        # Si la tabla está vacía, crea el primer prompt por defecto.
+        default_text = "Sos Multiva Assist, un asistente de ventas amigable... (tu prompt por defecto)"
         active_prompt = models.PromptHistorial(
             prompt_text=default_text,
-            clave='prompt_activo_chatbot',
             modificado_por='sistema'
         )
         db.add(active_prompt)
@@ -183,13 +184,16 @@ def get_active_prompt(db: Session):
         db.refresh(active_prompt)
     return active_prompt
 
-def update_active_prompt(db: Session, prompt_data: schemas.PromptHistorialCreate):
-    active_prompt = get_active_prompt(db)
-    active_prompt.prompt_text = prompt_data.prompt_text
-    active_prompt.modificado_por = prompt_data.modificado_por
+# Esta función ahora SIEMPRE crea un nuevo registro
+def create_new_prompt(db: Session, prompt_data: schemas.PromptHistorialCreate):
+    new_prompt = models.PromptHistorial(
+        prompt_text=prompt_data.prompt_text,
+        modificado_por=prompt_data.modificado_por
+    )
+    db.add(new_prompt)
     db.commit()
-    db.refresh(active_prompt)
-    return active_prompt
+    db.refresh(new_prompt)
+    return new_prompt
 
 def get_prompt_history(db: Session):
     # Devuelve el historial ordenado por fecha

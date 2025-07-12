@@ -17,6 +17,7 @@ import DescuentosPage from './pages/DescuentosPage';
 import CartPage from './pages/CartPage';
 import AyudaPage from './pages/AyudaPage';
 import CotizacionPage from './pages/CotizacionPage';
+import GestionPromptPage from './pages/GestionPromptPage';
 
 import './style.css';
 
@@ -40,6 +41,7 @@ function App() {
                     <Route path="/carrito" element={<CartPage />} />
                     <Route path="/ayuda" element={<AyudaPage />} />
                     <Route path="/solicitar-cotizacion" element={<CotizacionPage />} />
+                    <Route path="/admin/prompt" element={<GestionPromptPage />} />
                 </Route>               
             </Routes>
         </Router>
