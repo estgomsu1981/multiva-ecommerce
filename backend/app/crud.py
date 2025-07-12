@@ -198,3 +198,20 @@ def create_new_prompt(db: Session, prompt_data: schemas.PromptHistorialCreate):
 def get_prompt_history(db: Session):
     # Devuelve el historial ordenado por fecha
     return db.query(models.PromptHistorial).order_by(models.PromptHistorial.timestamp.desc()).all()
+
+def search_products_by_term(db: Session, search_term: str):
+    # Usamos text() de SQLAlchemy para ejecutar SQL plano de forma segura
+    from sqlalchemy import text
+
+    sql_query = text("""
+        SELECT nombre, descripcion, especificacion, precio
+        FROM products
+        WHERE to_tsvector('simple', nombre || ' ' || descripcion || ' ' || coalesce(especificacion, '')) @@ plainto_tsquery('simple', :term)
+        ORDER BY similarity(nombre, :term) DESC
+        LIMIT 5;
+    """)
+    
+    result = db.execute(sql_query, {"term": search_term})
+    # Mapeamos los resultados a un formato de diccionario
+    products = [dict(zip(result.keys(), row)) for row in result]
+    return products

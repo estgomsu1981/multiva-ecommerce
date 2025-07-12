@@ -81,45 +81,103 @@ def update_my_contact_info(
 # Endpoints de Chat (Proxy a OpenRouter)
 # ==========================================================================
 
+# en main.py
+
+import json # <-- Asegúrate de que este import esté al principio del archivo
+
 @app.post("/chat/completions", tags=["Chat"])
 async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(get_db)):
     api_key = settings.OPENROUTER_API_KEY
-    active_prompt = crud.get_active_prompt(db)
     if not api_key:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="API Key de OpenRouter no configurada.")
+        raise HTTPException(status_code=500, detail="API Key de OpenRouter no configurada.")
     
+    # --- LÓGICA DE AGENTE CON PROMPT DINÁMICO ---
+
+    # 1. Obtener el prompt activo desde la base de datos
+    active_prompt_object = crud.get_active_prompt(db)
+    system_prompt_text = active_prompt_object.prompt_text
+
+    # 2. Descripción de la herramienta para el LLM
+    tools = [
+        {
+            "type": "function",
+            "function": {
+                "name": "buscar_producto",
+                "description": "Busca en la base de datos de la ferretería y devuelve hasta 5 productos que coincidan. Útil para encontrar productos, precios o especificaciones.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "q": {
+                            "type": "string",
+                            "description": "Término de búsqueda, por ejemplo 'martillo', 'cemento gris', 'taladro 18v'."
+                        }
+                    },
+                    "required": ["q"]
+                }
+            }
+        }
+    ]
+
+    # 3. Construir el prompt del sistema usando el texto de la base de datos
     system_prompt = {
         "role": "system",
-        "content": active_prompt.prompt_text 
+        "content": system_prompt_text
     }
-
+    
     full_messages = [system_prompt] + messages
-
-    request_data = {
-        "model": "openrouter/cypher-alpha:free",
-        "messages": full_messages
-    }
-    request_headers = {
-        "Authorization": f"Bearer {api_key}",
-        "HTTP-Referer": "https://multiva-ecommerce.onrender.com",
-        "X-Title": "Multiva Asistente Virtual"
-    }
-
+    
     async with httpx.AsyncClient() as client:
         try:
+            # 4. Primera llamada al LLM
             response = await client.post(
                 "https://openrouter.ai/api/v1/chat/completions",
-                json=request_data,
-                headers=request_headers,
-                timeout=30.0
+                json={
+                    "model": "openrouter/cypher-alpha:free",
+                    "messages": full_messages,
+                    "tools": tools
+                },
+                headers={"Authorization": f"Bearer {api_key}"}
             )
             response.raise_for_status()
-            return response.json()
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(status_code=e.response.status_code, detail=f"Error desde la API externa: {e.response.text}")
-        except Exception as e:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error interno: {str(e)}")
+            response_data = response.json()
+            
+            # 5. Verificamos si el LLM quiere usar una herramienta
+            bot_message = response_data['choices'][0]['message']
+            if bot_message.get("tool_calls"):
+                tool_call = bot_message["tool_calls"][0]
+                tool_name = tool_call["function"]["name"]
+                
+                if tool_name == "buscar_producto":
+                    tool_args = json.loads(tool_call["function"]["arguments"])
+                    search_term = tool_args.get("q")
+                    
+                    # 6. Ejecutamos la búsqueda en nuestra base de datos
+                    print(f"LLM quiere buscar: '{search_term}'")
+                    search_results = crud.search_products_by_term(db, search_term=search_term)
+                    
+                    # 7. Añadimos la respuesta de la herramienta a la conversación
+                    tool_response_message = {
+                        "role": "tool",
+                        "tool_call_id": tool_call["id"],
+                        "content": json.dumps(search_results, ensure_ascii=False) # Usamos json.dumps para formatear correctamente la lista de productos
+                    }
+                    full_messages.append(bot_message)
+                    full_messages.append(tool_response_message)
+                    
+                    # 8. Hacemos una SEGUNDA llamada al LLM, ahora con los resultados de la búsqueda
+                    final_response = await client.post(
+                        "https://openrouter.ai/api/v1/chat/completions",
+                        json={"model": "openrouter/cypher-alpha:free", "messages": full_messages},
+                        headers={"Authorization": f"Bearer {api_key}"}
+                    )
+                    final_response.raise_for_status()
+                    return final_response.json()
+            
+            return response_data
 
+        except Exception as e:
+            print(f"Error en el flujo del chat: {e}")
+            raise HTTPException(status_code=500, detail="Error procesando la solicitud del chat.")
 
 # ==========================================================================
 # Endpoints Públicos (Categorías, Productos)
@@ -202,3 +260,12 @@ def set_current_prompt(
 def get_prompt_history_list(db: Session = Depends(get_db)):
     # TODO: Proteger esta ruta
     return crud.get_prompt_history(db)
+
+@app.get("/tools/search_products", tags=["Tools"])
+def search_products_tool(q: str, db: Session = Depends(get_db)):
+    """
+    Herramienta de búsqueda de productos para ser consumida por el LLM.
+    Recibe un término de búsqueda 'q'.
+    """
+    results = crud.search_products_by_term(db, search_term=q)
+    return {"results": results}
