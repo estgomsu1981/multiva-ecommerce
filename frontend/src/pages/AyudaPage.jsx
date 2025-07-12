@@ -24,37 +24,34 @@ const AyudaPage = () => {
 
     // Función que se llama cuando el usuario envía un mensaje
     const handleHelpMessage = async (userInput) => {
-        const userMessage = { text: userInput, sender: 'user' };
-        
-        // Añade el mensaje del usuario a la conversación
-        const currentConversation = [...messages, userMessage];
-        setMessages(currentConversation);
-        setIsBotTyping(true); // El bot empieza a "escribir"
+    const userMessage = { text: userInput, sender: 'user' };
+    const currentConversation = [...messages, userMessage];
+    setMessages(currentConversation);
+    setIsBotTyping(true);
 
-        // Preparamos el historial para enviar a nuestra API proxy
-        const messagesForAPI = currentConversation.map(msg => ({
+    // --- LÓGICA CORREGIDA ---
+    // 1. Filtramos los mensajes para quitar los que no son string (como el mensaje de bienvenida con JSX)
+    // 2. Mapeamos al formato que la API espera.
+    const messagesForAPI = currentConversation
+        .filter(msg => typeof msg.text === 'string') // Solo nos quedamos con los mensajes de texto
+        .map(msg => ({
             role: msg.sender === 'bot' ? 'assistant' : 'user',
-            // Aseguramos que el contenido sea un string
-            content: typeof msg.text === 'string' ? msg.text : 'Consulta del usuario', 
+            content: msg.text,
         }));
-        
-        try {
-            // La petición ahora va a nuestro propio backend
-            const response = await apiClient.post('/chat/completions', messagesForAPI);
+    // ----------------------
 
-            const botResponseText = response.data.choices[0].message.content;
-            const botResponse = { text: botResponseText, sender: 'bot' };
-            
-            // Añade la respuesta del bot a la conversación
-            setMessages(prev => [...prev, botResponse]);
-
-        } catch (error) {
-            console.error("Error en la comunicación con el backend del chat:", error);
-            const errorResponse = { text: "Lo siento, hubo un problema. Por favor, intenta de nuevo más tarde.", sender: 'bot' };
-            setMessages(prev => [...prev, errorResponse]);
-        } finally {
-            setIsBotTyping(false); // El bot deja de "escribir"
-        }
+    try {
+        const response = await apiClient.post('/chat/completions', messagesForAPI);
+        const botResponseText = response.data.choices[0].message.content;
+        const botResponse = { text: botResponseText, sender: 'bot' };
+        setMessages(prev => [...prev, botResponse]);
+    } catch (error) {
+        console.error("Error en la comunicación con el backend del chat:", error);
+        const errorResponse = { text: "Lo siento, hubo un problema. Por favor, intenta de nuevo más tarde.", sender: 'bot' };
+        setMessages(prev => [...prev, errorResponse]);
+    } finally {
+        setIsBotTyping(false);
+    }
     };
 
     return (
