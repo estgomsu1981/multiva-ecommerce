@@ -43,6 +43,7 @@ const AyudaPage = () => {
     try {
         const response = await apiClient.post('/chat/completions', messagesForAPI);
         const botResponseText = response.data.choices[0].message.content;
+        botResponseText = botResponseText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
         const botResponse = { text: botResponseText, sender: 'bot' };
         setMessages(prev => [...prev, botResponse]);
     } catch (error) {
