@@ -200,22 +200,28 @@ def get_prompt_history(db: Session):
     return db.query(models.PromptHistorial).order_by(models.PromptHistorial.timestamp.desc()).all()
 
 # en crud.py
+# en crud.py
 def search_products_by_term(db: Session, search_term: str):
-    from sqlalchemy import text
+    from sqlalchemy import text, func # Asegúrate de importar func
 
-    # Preparamos el término de búsqueda para plainto_tsquery, reemplazando espacios por '&'
-    # Esto busca palabras que aparecen juntas.
-    query_term = ' & '.join(search_term.split())
-
+    # Usamos la función de PostgreSQL to_tsquery que es robusta
+    # y maneja múltiples palabras correctamente.
     sql_query = text("""
         SELECT nombre, descripcion, especificacion, precio
         FROM products
-        WHERE to_tsvector('simple', nombre || ' ' || descripcion || ' ' || coalesce(especificacion, '')) @@ plainto_tsquery('simple', :term)
-        ORDER BY similarity(nombre, :search_original) DESC
+        WHERE 
+            to_tsvector('simple', nombre || ' ' || descripcion || ' ' || coalesce(especificacion, ''))
+            @@ to_tsquery('simple', :term)
+        ORDER BY 
+            similarity(nombre, :term) DESC,
+            similarity(descripcion, :term) DESC
         LIMIT 5;
     """)
     
-    result = db.execute(sql_query, {"term": query_term, "search_original": search_term})
+    # Preparamos el término para que to_tsquery lo entienda bien (palabra1 & palabra2)
+    processed_term = ' & '.join(search_term.strip().split())
+    
+    result = db.execute(sql_query, {"term": processed_term})
     
     products = [dict(zip(result.keys(), row)) for row in result]
     return products
