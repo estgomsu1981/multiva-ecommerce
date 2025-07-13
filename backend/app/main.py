@@ -91,15 +91,17 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     if not api_key:
         raise HTTPException(status_code=500, detail="API Key de Groq no configurada.")
     
-    # Obtenemos el último mensaje del usuario
+    # Obtenemos el último mensaje del usuario para decidir si buscamos
     user_query = messages[-1]["content"] if messages else ""
     
-    # --- LÓGICA DE BÚSQUEDA PRIMERO (RAG) ---
+    # --- LÓGICA DE BÚSQUEDA PRIMERO ---
     search_results = []
     # Palabras clave que activan una búsqueda en la base de datos
-    keywords = ["producto", "cemento", "martillo", "alicate", "herramienta", "precio", "cuánto cuesta", "tienen"]
+    keywords = ["producto", "cemento", "martillo", "alicate", "herramienta", "precio", "cuánto cuesta", "tienen", "venden", "ofrecen"]
+    
+    # Si el mensaje del usuario contiene alguna palabra clave, activamos la búsqueda
     if any(keyword in user_query.lower() for keyword in keywords):
-        print(f"--- Búsqueda activada por palabra clave. Buscando: '{user_query}' ---")
+        print(f"--- Búsqueda activada. Buscando: '{user_query}' ---")
         search_results = crud.search_products_by_term(db, search_term=user_query)
 
     # --- CONSTRUCCIÓN DEL PROMPT PARA UNA SOLA LLAMADA ---
@@ -109,18 +111,19 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     if search_results:
         contexto_busqueda = "Resultados de la base de datos: " + json.dumps(search_results, ensure_ascii=False)
     else:
-        contexto_busqueda = "Resultados de la base de datos: No se encontraron productos."
+        # Si no hay resultados, el contexto estará vacío, y el prompt del sistema lo manejará
+        contexto_busqueda = "Resultados de la base de datos: []"
 
     # Prompt del sistema actualizado
     system_prompt_content = f"""
     {active_prompt_object.prompt_text}
     
-    --- CONTEXTO DE BÚSQUEDA ---
+    --- CONTEXTO DE BÚSQUEDA DE PRODUCTOS ---
     {contexto_busqueda}
     --- FIN DEL CONTEXTO ---
 
     Basándote ÚNICAMENTE en el CONTEXTO DE BÚSQUEDA anterior, responde a la última pregunta del usuario.
-    Si el contexto está vacío o no es relevante, di amablemente que no tienes esa información. No inventes productos.
+    Si el contexto está vacío o no contiene información relevante para la pregunta, responde amablemente que no encontraste ese producto o información. No inventes productos ni precios.
     """
     
     system_prompt = {"role": "system", "content": system_prompt_content}
@@ -139,8 +142,10 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
                 timeout=30.0
             )
             response.raise_for_status()
+            
+            # Devolvemos la respuesta directamente
             return response.json()
-    
+                
         except httpx.HTTPStatusError as e:
             print(f"Error HTTP de Groq: {e.response.status_code} - {e.response.text}")
             raise HTTPException(status_code=e.response.status_code, detail=f"Error de la API externa: {e.response.text}")
