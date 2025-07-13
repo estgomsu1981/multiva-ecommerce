@@ -87,10 +87,8 @@ def update_my_contact_info(
 
 import json # <-- Asegúrate de que este import esté al principio del archivo
 
-
 @app.post("/chat/completions", tags=["Chat"])
 async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(get_db)):
-    # --- AHORA USAMOS LA CLAVE DE GROQ ---
     api_key = settings.GROQ_API_KEY
     if not api_key:
         raise HTTPException(status_code=500, detail="API Key de Groq no configurada.")
@@ -99,21 +97,28 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     system_prompt = { "role": "system", "content": active_prompt_object.prompt_text }
     
     tools = [
-        # ... (la definición de la herramienta 'buscar_producto' no cambia)
+        {
+            "type": "function",
+            "function": {
+                "name": "buscar_producto",
+                "description": "Busca en la base de datos de la ferretería y devuelve hasta 5 productos que coincidan con el término de búsqueda. Útil para encontrar productos, precios o especificaciones.",
+                "parameters": { "type": "object", "properties": { "q": { "type": "string", "description": "Término de búsqueda" } }, "required": ["q"] }
+            }
+        }
     ]
     
     full_messages = [system_prompt] + messages
     
     async with httpx.AsyncClient() as client:
         try:
-            # --- PRIMERA LLAMADA A GROQ ---
+            # Primera llamada a Groq
             response = await client.post(
-                "https://api.groq.com/openai/v1/chat/completions", # <-- NUEVA URL
+                "https://api.groq.com/openai/v1/chat/completions",
                 json={
-                    "model": "llama3-8b-8192", # <-- NUEVO MODELO (Llama 3 8B es una excelente opción gratuita)
+                    "model": "llama-3.1-8b-instant",
                     "messages": full_messages,
                     "tools": tools,
-                    "tool_choice": "auto" # Indicamos a Groq que puede elegir usar una herramienta
+                    "tool_choice": "auto"
                 },
                 headers={"Authorization": f"Bearer {api_key}"}
             )
@@ -121,33 +126,46 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
             response_data = response.json()
             
             bot_message = response_data['choices'][0]['message']
+
+            # --- LÓGICA CORREGIDA PARA MANEJAR TOOL CALLS ---
             if bot_message.get("tool_calls"):
+                # El modelo quiere usar una herramienta
                 tool_call = bot_message["tool_calls"][0]
+                
                 if tool_call["function"]["name"] == "buscar_producto":
-                    # ... (lógica para ejecutar la herramienta)
-                    search_results = crud.search_products_by_term(...)
+                    tool_args = json.loads(tool_call["function"]["arguments"])
+                    search_term = tool_args.get("q")
                     
+                    # Ejecutamos la búsqueda en nuestra DB
+                    print(f"Groq quiere buscar: '{search_term}'")
+                    search_results = crud.search_products_by_term(db, search_term=search_term)
+                    
+                    # Preparamos la respuesta de la herramienta para el modelo
                     tool_response_message = {
                         "role": "tool",
                         "tool_call_id": tool_call["id"],
                         "name": tool_call["function"]["name"],
                         "content": json.dumps(search_results, ensure_ascii=False)
                     }
+                    
+                    # Añadimos los mensajes nuevos a la conversación
                     full_messages.append(bot_message)
                     full_messages.append(tool_response_message)
                     
-                    # --- SEGUNDA LLAMADA A GROQ ---
+                    # Hacemos la segunda llamada a Groq con los resultados de la herramienta
                     final_response = await client.post(
-                        "https://api.groq.com/openai/v1/chat/completions", # <-- NUEVA URL
+                        "https://api.groq.com/openai/v1/chat/completions",
                         json={
-                            "model": "llama3-8b-8192", # <-- NUEVO MODELO
+                            "model": "llama-3.1-8b-instant",
                             "messages": full_messages
                         },
                         headers={"Authorization": f"Bearer {api_key}"}
                     )
                     final_response.raise_for_status()
                     return final_response.json()
+            # ----------------------------------------------------
             
+            # Si no hubo tool_calls, devolvemos la respuesta original
             return response_data
 
         except httpx.HTTPStatusError as e:
