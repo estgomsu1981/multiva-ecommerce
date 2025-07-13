@@ -1,58 +1,43 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useContext, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import ChatInterface, { AuthWall } from '../components/ChatInterface';
+import { AuthWall } from '../components/ChatInterface'; // Importamos solo AuthWall
 import AuthContext from '../context/AuthContext';
 import apiClient from '../api/axios';
 
 const AyudaPage = () => {
     const { user } = useContext(AuthContext);
     const [messages, setMessages] = useState([]);
-    const [isBotTyping, setIsBotTyping] = useState(false); // Para mostrar "Bot está escribiendo..."
+    const [isBotTyping, setIsBotTyping] = useState(false);
+    const [inputValue, setInputValue] = useState('');
+    const chatBoxRef = useRef(null); // Para el scroll automático
 
-    // Establece el mensaje de bienvenida inicial del bot
+    // Efecto para hacer scroll hacia abajo cada vez que se añade un mensaje
     useEffect(() => {
-        const initialBotMessage = {
-            text: (
-                <>
-                    Hola 👋, soy <strong>Multiva Assist</strong>. Estoy aquí para resolver cualquier duda que tengas sobre nuestros productos, servicios o procesos de compra. ¿En qué te puedo ayudar?
-                </>
-            ),
-            sender: 'bot'
-        };
-        setMessages([initialBotMessage]);
-    }, []);
+        if (chatBoxRef.current) {
+            chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+        }
+    }, [messages]);
 
-    // Función que se llama cuando el usuario envía un mensaje
-    const handleHelpMessage = async (userInput) => {
-        const userMessage = { text: userInput, sender: 'user' };
+    const handleSendMessage = async () => {
+        if (inputValue.trim() === '' || isBotTyping) return;
 
-        // Añade el mensaje del usuario al estado inmediatamente
-        const newConversation = [...messages, userMessage];
-        setMessages(newConversation);
+        const userMessage = { text: inputValue, sender: 'user' };
+        const newMessagesForUI = [...messages, userMessage];
+        setMessages(newMessagesForUI);
+        setInputValue('');
         setIsBotTyping(true);
 
-        // Preparamos el historial para enviar a la API
-        const messagesForAPI = newConversation
-            .filter(msg => typeof msg.text === 'string')
-            .map(msg => ({
-                role: msg.sender === 'bot' ? 'assistant' : 'user',
-                content: msg.text,
-            }));
+        const messagesForAPI = newMessagesForUI.map(msg => ({
+            role: msg.sender === 'bot' ? 'assistant' : 'user',
+            content: msg.text,
+        }));
         
         try {
-            // La petición ahora va a nuestro propio backend
             const response = await apiClient.post('/chat/completions', messagesForAPI);
-
             let botResponseText = response.data.choices[0].message.content;
-            // Limpiamos el texto de "pensamientos" del bot
             botResponseText = botResponseText.replace(/<thinking>[\s\S]*?<\/thinking>/g, '').trim();
-
             const botResponse = { text: botResponseText, sender: 'bot' };
-            
-            // --- LÓGICA CORREGIDA ---
-            // Usamos setMessages para añadir la respuesta del bot, creando un nuevo array
             setMessages(prev => [...prev, botResponse]);
-
         } catch (error) {
             console.error("Error en la comunicación con el backend del chat:", error);
             const errorResponse = { text: "Lo siento, hubo un problema. Por favor, intenta de nuevo más tarde.", sender: 'bot' };
@@ -61,24 +46,42 @@ const AyudaPage = () => {
             setIsBotTyping(false);
         }
     };
-
+    
     return (
         <div className="chat-page-container">
             <h2 className="admin-panel-title">🤖 Multiva Assist - Centro de Ayuda</h2>
             
-            {/* Muestra un aviso si el usuario no está logueado, pero no bloquea el chat */}
             {!user && (
                 <AuthWall>
                     <p>Para una atención personalizada, por favor <Link to="/login">inicia sesión</Link>.</p>
                 </AuthWall>
             )}
 
-            <ChatInterface
-                messages={messages}
-                onSendMessage={handleHelpMessage}
-                disabled={isBotTyping} // Deshabilita el input mientras el bot responde
-                placeholder={isBotTyping ? "Multiva Assist está escribiendo..." : "Escribe tu pregunta..."}
-            />
+            <div className="chat-container">
+                <div className="chat-box" ref={chatBoxRef}>
+                    <div className="chat-message bot-message">
+                        Hola 👋, soy <strong>Multiva Assist</strong>. Estoy aquí para resolver cualquier duda que tengas sobre nuestros productos, servicios o procesos de compra. ¿En qué te puedo ayudar?
+                    </div>
+                    {messages.map((msg, index) => (
+                        <div key={index} className={`chat-message ${msg.sender === 'bot' ? 'bot-message' : 'user-message'}`}>
+                            {msg.text}
+                        </div>
+                    ))}
+                </div>
+                <div className="input-area">
+                    <input
+                        type="text"
+                        value={inputValue}
+                        onChange={(e) => setInputValue(e.target.value)}
+                        placeholder={isBotTyping ? "Multiva Assist está escribiendo..." : "Escribe tu pregunta..."}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                        disabled={isBotTyping}
+                    />
+                    <button onClick={handleSendMessage} disabled={isBotTyping} className="btn btn-primary">
+                        Enviar
+                    </button>
+                </div>
+            </div>
         </div>
     );
 };

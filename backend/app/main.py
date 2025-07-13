@@ -92,12 +92,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
         raise HTTPException(status_code=500, detail="API Key de Groq no configurada.")
     
     active_prompt_object = crud.get_active_prompt(db)
-    
-    # --- PROMPT DEL SISTEMA MÁS ESTRICTO ---
-    system_prompt = {
-        "role": "system",
-        "content": active_prompt_object.prompt_text
-    }
+    system_prompt = { "role": "system", "content": active_prompt_object.prompt_text }
     
     tools = [
         {
@@ -107,7 +102,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
                 "description": "Busca productos en la base de datos de la ferretería. Usa esta herramienta para cualquier pregunta sobre productos, precios o especificaciones.",
                 "parameters": {
                     "type": "object",
-                    "properties": { "q": { "type": "string", "description": "El nombre o tipo de producto a buscar, como 'martillo' o 'cemento'." } },
+                    "properties": { "q": { "type": "string", "description": "Término a buscar" } },
                     "required": ["q"]
                 }
             }
@@ -118,15 +113,14 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     
     async with httpx.AsyncClient() as client:
         try:
-            # --- PRIMERA LLAMADA: FORZANDO LA HERRAMIENTA ---
+            # --- PRIMERA LLAMADA A GROQ ---
             response = await client.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 json={
                     "model": "llama-3.1-8b-instant",
                     "messages": full_messages,
                     "tools": tools,
-                    # Esta línea le dice al modelo: "DEBES usar la herramienta buscar_producto"
-                    "tool_choice": {"type": "function", "function": {"name": "buscar_producto"}}
+                    "tool_choice": "auto" # Le permitimos al modelo decidir
                 },
                 headers={"Authorization": f"Bearer {api_key}"}
             )
@@ -135,7 +129,6 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
             
             bot_message = response_data['choices'][0]['message']
             
-            # El flujo a partir de aquí debería funcionar, ya que estamos forzando la llamada
             if bot_message.get("tool_calls"):
                 tool_call = bot_message["tool_calls"][0]
                 tool_name = tool_call["function"]["name"]
@@ -144,18 +137,24 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
                     tool_args = json.loads(tool_call["function"]["arguments"])
                     search_term = tool_args.get("q")
                     
-                    print(f"--- Herramienta 'buscar_producto' FORZADA con: '{search_term}' ---")
+                    print(f"--- Herramienta 'buscar_producto' llamada con: '{search_term}' ---")
                     search_results = crud.search_products_by_term(db, search_term=search_term)
                     
+                    # --- ESTRUCTURA DEL MENSAJE DE HERRAMIENTA CORREGIDA ---
                     tool_response_message = {
                         "role": "tool",
                         "tool_call_id": tool_call["id"],
                         "name": tool_name,
+                        # El contenido DEBE ser un string. Usamos json.dumps para convertir nuestra lista de productos.
                         "content": json.dumps(search_results, ensure_ascii=False)
                     }
+                    # --------------------------------------------------------
+                    
+                    # Añadimos la petición de la herramienta y su resultado a la conversación
                     full_messages.append(bot_message)
                     full_messages.append(tool_response_message)
                     
+                    # Hacemos la SEGUNDA llamada a Groq
                     final_response = await client.post(
                         "https://api.groq.com/openai/v1/chat/completions",
                         json={ "model": "llama-3.1-8b-instant", "messages": full_messages },
@@ -164,7 +163,6 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
                     final_response.raise_for_status()
                     return final_response.json()
             
-            # Este return es un fallback, pero no debería alcanzarse si forzamos la herramienta
             return response_data
 
         except httpx.HTTPStatusError as e:
