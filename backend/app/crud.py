@@ -203,28 +203,29 @@ def get_prompt_history(db: Session):
 # en crud.py
 # en crud.py
 def search_products_by_term(db: Session, search_term: str):
-    from sqlalchemy import text
+    from sqlalchemy import text, func
 
-    # Preparamos el término de búsqueda para que funcione con LIKE,
-    # añadiendo '%' al principio y al final.
-    like_term = f"%{search_term}%"
-
-    # --- NUEVA CONSULTA CON ILIKE ---
-    # ILIKE es como LIKE, pero insensible a mayúsculas/minúsculas.
+    # Usamos websearch_to_tsquery, que es más flexible y entiende mejor el lenguaje natural.
+    # Especificamos 'spanish' para que maneje correctamente plurales y singulares en español.
     sql_query = text("""
         SELECT nombre, descripcion, especificacion, precio
         FROM products
         WHERE 
-            nombre ILIKE :term OR
-            descripcion ILIKE :term OR
-            coalesce(especificacion, '') ILIKE :term
+            to_tsvector('spanish', nombre || ' ' || descripcion || ' ' || coalesce(especificacion, ''))
+            @@ websearch_to_tsquery('spanish', :term)
+        ORDER BY 
+            ts_rank_cd(
+                to_tsvector('spanish', nombre || ' ' || descripcion || ' ' || coalesce(especificacion, '')),
+                websearch_to_tsquery('spanish', :term)
+            ) DESC
         LIMIT 5;
     """)
     
-    result = db.execute(sql_query, {"term": like_term})
+    result = db.execute(sql_query, {"term": search_term})
     
     products = [dict(zip(result.keys(), row)) for row in result]
     
-    print(f"Búsqueda por '{search_term}' con ILIKE encontró: {len(products)} productos.")
+    # Imprimimos en el log de Render para depurar
+    print(f"Búsqueda por '{search_term}' encontró: {len(products)} productos.")
     
     return products
