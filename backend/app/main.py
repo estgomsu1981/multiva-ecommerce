@@ -93,82 +93,60 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     
     user_query = messages[-1]["content"] if messages else ""
     
+    # --- PASO 1: BÚSQUEDA PROACTIVA EN NUESTRA BASE DE DATOS ---
+    # Decidimos buscar si la pregunta parece referirse a un producto.
+    # Esta lista de keywords es solo una heurística, podemos mejorarla.
+    keywords_busqueda = ["producto", "cemento", "martillo", "alicate", "herramienta", "mueble", "eléctrico", "piso", "cocina", "tienen", "venden", "cuánto cuesta", "precio de"]
+    search_results = []
+    
+    if any(keyword in user_query.lower() for keyword in keywords_busqueda):
+        print(f"--- Intención de búsqueda detectada. Buscando: '{user_query}' ---")
+        search_results = crud.search_products_by_term(db, search_term=user_query)
+
+    # --- PASO 2: CONSTRUIR EL PROMPT PARA EL LLM ---
+    active_prompt_object = crud.get_active_prompt(db)
+    base_prompt_text = active_prompt_object.prompt_text
+    
+    # Construimos el contexto de la búsqueda para inyectarlo en el prompt
+    if search_results:
+        # Formateamos los resultados para que el LLM los entienda bien
+        formatted_results = "\n".join([
+            f"- Nombre: {p['nombre']}. Descripción: {p['descripcion']}. Especificación: {p.get('especificacion', 'N/A')}."
+            for p in search_results
+        ])
+        contexto_busqueda = "Resultados de la base de datos:\n" + formatted_results
+    else:
+        contexto_busqueda = "Resultados de la base de datos: [No se encontraron productos para esta búsqueda]"
+
+    # Unimos el prompt base con el contexto de la búsqueda
+    final_system_prompt = f"""
+    {base_prompt_text}
+
+    --- CONTEXTO DE BÚSQUEDA ACTUAL ---
+    {contexto_busqueda}
+    --- FIN DEL CONTEXTO ---
+
+    Responde a la última pregunta del usuario basándote ESTRICTAMENTE en el CONTEXTO DE BÚSQUEDA.
+    Si el contexto dice que no se encontraron productos, usa la frase exacta de fallback de tu protocolo.
+    No inventes información. Tu respuesta debe ser solo texto en lenguaje natural.
+    """
+    
+    system_prompt = {"role": "system", "content": final_system_prompt}
+    full_messages = [system_prompt] + messages
+    
     async with httpx.AsyncClient() as client:
         try:
-            # --- PASO 1: Clasificar la intención del usuario ---
-            classifier_prompt = f"""
-            Analiza la pregunta del usuario y clasifícala en una de dos categorías: "busqueda" o "general".
-            - "busqueda": Si la pregunta se refiere a un producto, material, herramienta, precio, o cualquier cosa que pueda estar en el inventario de una ferretería.
-            - "general": Si la pregunta es un saludo, una despedida, una pregunta sobre la empresa, o no está relacionada con productos.
-
-            **Ejemplos:**
-            - Usuario: "hola" -> general
-            - Usuario: "tienes martillos?" -> busqueda
-            - Usuario: "cuánto cuesta el cemento?" -> busqueda
-            - Usuario: "venden muebles de cocina" -> busqueda
-            - Usuario: "gracias" -> general
-            - Usuario: "tienes algo electrico?" -> busqueda
-            - Usuario: "qué tipo de muebles tienen?" -> busqueda
-            - Usuario: "información sobre alicates" -> busqueda
-            - Usuario: "dónde están ubicados?" -> general
-            - Usuario: "cuál es su horario?" -> general
-
-            Pregunta del usuario: '{user_query}'
-
-            Categoría:
-            """
-            
-            classifier_response = await client.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                json={
-                    "model": "llama-3.1-8b-instant",
-                    "messages": [{"role": "user", "content": classifier_prompt}],
-                    "temperature": 0.0
-                },
-                headers={"Authorization": f"Bearer {api_key}"}
-            )
-            classifier_response.raise_for_status()
-            intent = classifier_response.json()['choices'][0]['message']['content'].lower().strip()
-            print(f"--- Intención detectada: {intent} ---")
-
-            # --- PASO 2: Actuar según la intención ---
-            active_prompt_object = crud.get_active_prompt(db)
-            system_prompt_content = active_prompt_object.prompt_text
-            contexto_busqueda = "Resultados de la base de datos: [No se realizó una búsqueda]"
-
-            if "busqueda" in intent:
-                print(f"--- Realizando búsqueda para: '{user_query}' ---")
-                search_results = crud.search_products_by_term(db, search_term=user_query)
-                if search_results:
-                    contexto_busqueda = "Resultados de la base de datos: " + json.dumps(search_results, ensure_ascii=False)
-                else:
-                    contexto_busqueda = "Resultados de la base de datos: []"
-            
-            # --- CONSTRUCCIÓN DEL PROMPT FINAL ---
-            final_system_prompt = f"""
-            {system_prompt_content}
-
-            --- CONTEXTO ADICIONAL (Resultados de la Búsqueda) ---
-            {contexto_busqueda}
-            --- FIN DEL CONTEXTO ---
-
-            Basado en el CONTEXTO ADICIONAL, responde a la última pregunta del usuario. 
-            Si el contexto dice que no hay resultados, informa al usuario amablemente.
-            """
-
-            full_messages = [{"role": "system", "content": final_system_prompt}] + messages
-
-            # --- LLAMADA FINAL PARA GENERAR LA RESPUESTA ---
-            final_response = await client.post(
+            # --- PASO 3: UNA SOLA LLAMADA A GROQ ---
+            response = await client.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 json={
                     "model": "llama-3.1-8b-instant",
                     "messages": full_messages,
-                },
+                }, # Ya no se necesita 'tools'
                 headers={"Authorization": f"Bearer {api_key}"}
             )
-            final_response.raise_for_status()
-            return final_response.json()
+            response.raise_for_status()
+            return response.json()
                 
         except httpx.HTTPStatusError as e:
             print(f"Error HTTP de Groq: {e.response.status_code} - {e.response.text}")
