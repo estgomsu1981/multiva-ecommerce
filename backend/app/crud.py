@@ -199,33 +199,39 @@ def get_prompt_history(db: Session):
     # Devuelve el historial ordenado por fecha
     return db.query(models.PromptHistorial).order_by(models.PromptHistorial.timestamp.desc()).all()
 
-# en crud.py
-# en crud.py
-# en crud.py
 def search_products_by_term(db: Session, search_term: str):
-    from sqlalchemy import text, func
+    from sqlalchemy import text
 
-    # Usamos websearch_to_tsquery, que es más flexible y entiende mejor el lenguaje natural.
-    # Especificamos 'spanish' para que maneje correctamente plurales y singulares en español.
+    # Preparamos el término para la búsqueda
+    processed_term = ' & '.join(search_term.strip().split())
+
+    # --- CONSULTA SQL CON JOIN A CATEGORÍAS ---
     sql_query = text("""
-        SELECT nombre, descripcion, especificacion, precio
-        FROM products
+        SELECT 
+            p.nombre, 
+            p.descripcion, 
+            p.especificacion, 
+            p.precio,
+            c.nombre AS categoria_nombre 
+        FROM 
+            products AS p
+        LEFT JOIN 
+            categories AS c ON p.category_id = c.id
         WHERE 
-            to_tsvector('spanish', nombre || ' ' || descripcion || ' ' || coalesce(especificacion, ''))
+            to_tsvector('spanish', p.nombre || ' ' || p.descripcion || ' ' || coalesce(p.especificacion, ''))
             @@ websearch_to_tsquery('spanish', :term)
         ORDER BY 
             ts_rank_cd(
-                to_tsvector('spanish', nombre || ' ' || descripcion || ' ' || coalesce(especificacion, '')),
+                to_tsvector('spanish', p.nombre || ' ' || p.descripcion || ' ' || coalesce(p.especificacion, '')),
                 websearch_to_tsquery('spanish', :term)
             ) DESC
         LIMIT 5;
     """)
     
-    result = db.execute(sql_query, {"term": search_term})
+    result = db.execute(sql_query, {"term": processed_term})
     
     products = [dict(zip(result.keys(), row)) for row in result]
     
-    # Imprimimos en el log de Render para depurar
     print(f"Búsqueda por '{search_term}' encontró: {len(products)} productos.")
     
     return products

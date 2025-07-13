@@ -121,7 +121,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
         search_results = crud.search_products_by_term(db, search_term=user_query)
         
         if not search_results:
-            response_text = "Lo siento, no encontré productos que coincidan con tu búsqueda. ¿Puedo ayudarte con algo más? #REVISAR"
+            response_text = "Lo siento, no encontré productos que coincidan con tu búsqueda. ¿Puedo ayudarte con algo más?"
         else:
             # Formateamos la respuesta nosotros mismos en el backend
             response_parts = ["¡Claro! Encontré estos productos relacionados:"]
@@ -131,6 +131,9 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
                     part += f" (Especificación: {prod['especificacion']})"
                 if prod.get('precio'):
                     part += f" - Precio: ₡{prod['precio']}"
+
+                if prod.get('categoria_nombre'):
+                    part += f". Puedes encontrarlo en la categoría: **{prod['categoria_nombre']}**."
                 response_parts.append(part)
             response_text = "\n".join(response_parts)
 
