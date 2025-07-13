@@ -97,9 +97,25 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
         try:
             # --- PASO 1: Clasificar la intención del usuario ---
             classifier_prompt = f"""
-            Analiza la siguiente pregunta de un usuario: '{user_query}'
-            ¿Es una pregunta sobre un producto, precio, material o algo que se pueda buscar en un inventario de ferretería?
-            Responde ÚNICAMENTE con la palabra "busqueda" o la palabra "general".
+            Analiza la pregunta del usuario y clasifícala en una de dos categorías: "busqueda" o "general".
+            - "busqueda": Si la pregunta se refiere a un producto, material, herramienta, precio, o cualquier cosa que pueda estar en el inventario de una ferretería.
+            - "general": Si la pregunta es un saludo, una despedida, una pregunta sobre la empresa, o no está relacionada con productos.
+
+            **Ejemplos:**
+            - Usuario: "hola" -> general
+            - Usuario: "tienes martillos?" -> busqueda
+            - Usuario: "cuánto cuesta el cemento?" -> busqueda
+            - Usuario: "venden muebles de cocina" -> busqueda
+            - Usuario: "gracias" -> general
+            - Usuario: "tienes algo electrico?" -> busqueda
+            - Usuario: "qué tipo de muebles tienen?" -> busqueda
+            - Usuario: "información sobre alicates" -> busqueda
+            - Usuario: "dónde están ubicados?" -> general
+            - Usuario: "cuál es su horario?" -> general
+
+            Pregunta del usuario: '{user_query}'
+
+            Categoría:
             """
             
             classifier_response = await client.post(
