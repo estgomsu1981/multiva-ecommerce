@@ -91,80 +91,56 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     if not api_key:
         raise HTTPException(status_code=500, detail="API Key de Groq no configurada.")
     
+    # Obtenemos el último mensaje del usuario
+    user_query = messages[-1]["content"] if messages else ""
+    
+    # --- LÓGICA DE BÚSQUEDA PRIMERO (RAG) ---
+    search_results = []
+    # Palabras clave que activan una búsqueda en la base de datos
+    keywords = ["producto", "cemento", "martillo", "alicate", "herramienta", "precio", "cuánto cuesta", "tienen"]
+    if any(keyword in user_query.lower() for keyword in keywords):
+        print(f"--- Búsqueda activada por palabra clave. Buscando: '{user_query}' ---")
+        search_results = crud.search_products_by_term(db, search_term=user_query)
+
+    # --- CONSTRUCCIÓN DEL PROMPT PARA UNA SOLA LLAMADA ---
     active_prompt_object = crud.get_active_prompt(db)
-    system_prompt = { "role": "system", "content": active_prompt_object.prompt_text }
     
-    tools = [
-        {
-            "type": "function",
-            "function": {
-                "name": "buscar_producto",
-                "description": "Busca productos en la base de datos de la ferretería. Usa esta herramienta para cualquier pregunta sobre productos, precios o especificaciones.",
-                "parameters": {
-                    "type": "object",
-                    "properties": { "q": { "type": "string", "description": "Término a buscar" } },
-                    "required": ["q"]
-                }
-            }
-        }
-    ]
+    # Creamos un contexto de búsqueda para el prompt
+    if search_results:
+        contexto_busqueda = "Resultados de la base de datos: " + json.dumps(search_results, ensure_ascii=False)
+    else:
+        contexto_busqueda = "Resultados de la base de datos: No se encontraron productos."
+
+    # Prompt del sistema actualizado
+    system_prompt_content = f"""
+    {active_prompt_object.prompt_text}
     
+    --- CONTEXTO DE BÚSQUEDA ---
+    {contexto_busqueda}
+    --- FIN DEL CONTEXTO ---
+
+    Basándote ÚNICAMENTE en el CONTEXTO DE BÚSQUEDA anterior, responde a la última pregunta del usuario.
+    Si el contexto está vacío o no es relevante, di amablemente que no tienes esa información. No inventes productos.
+    """
+    
+    system_prompt = {"role": "system", "content": system_prompt_content}
     full_messages = [system_prompt] + messages
     
     async with httpx.AsyncClient() as client:
         try:
-            # --- PRIMERA LLAMADA A GROQ ---
+            # --- HACEMOS UNA ÚNICA Y DIRECTA LLAMADA A GROQ ---
             response = await client.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 json={
                     "model": "llama-3.1-8b-instant",
                     "messages": full_messages,
-                    "tools": tools,
-                    "tool_choice": "auto" # Le permitimos al modelo decidir
-                },
-                headers={"Authorization": f"Bearer {api_key}"}
+                }, # Ya no necesitamos 'tools' ni 'tool_choice'
+                headers={"Authorization": f"Bearer {api_key}"},
+                timeout=30.0
             )
             response.raise_for_status()
-            response_data = response.json()
-            
-            bot_message = response_data['choices'][0]['message']
-            
-            if bot_message.get("tool_calls"):
-                tool_call = bot_message["tool_calls"][0]
-                tool_name = tool_call["function"]["name"]
-                
-                if tool_name == "buscar_producto":
-                    tool_args = json.loads(tool_call["function"]["arguments"])
-                    search_term = tool_args.get("q")
-                    
-                    print(f"--- Herramienta 'buscar_producto' llamada con: '{search_term}' ---")
-                    search_results = crud.search_products_by_term(db, search_term=search_term)
-                    
-                    # --- ESTRUCTURA DEL MENSAJE DE HERRAMIENTA CORREGIDA ---
-                    tool_response_message = {
-                        "role": "tool",
-                        "tool_call_id": tool_call["id"],
-                        "name": tool_name,
-                        # El contenido DEBE ser un string. Usamos json.dumps para convertir nuestra lista de productos.
-                        "content": json.dumps(search_results, ensure_ascii=False)
-                    }
-                    # --------------------------------------------------------
-                    
-                    # Añadimos la petición de la herramienta y su resultado a la conversación
-                    full_messages.append(bot_message)
-                    full_messages.append(tool_response_message)
-                    
-                    # Hacemos la SEGUNDA llamada a Groq
-                    final_response = await client.post(
-                        "https://api.groq.com/openai/v1/chat/completions",
-                        json={ "model": "llama-3.1-8b-instant", "messages": full_messages },
-                        headers={"Authorization": f"Bearer {api_key}"}
-                    )
-                    final_response.raise_for_status()
-                    return final_response.json()
-            
-            return response_data
-
+            return response.json()
+    
         except httpx.HTTPStatusError as e:
             print(f"Error HTTP de Groq: {e.response.status_code} - {e.response.text}")
             raise HTTPException(status_code=e.response.status_code, detail=f"Error de la API externa: {e.response.text}")
