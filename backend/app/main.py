@@ -1,5 +1,5 @@
 # --- Imports de Librerías ---
-from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, status
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile, status,JSONResponse
 from sqlalchemy.orm import Session
 from typing import List, Dict, Any, Optional
 from fastapi.middleware.cors import CORSMiddleware
