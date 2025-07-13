@@ -133,7 +133,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
                     part += f" - Precio: ₡{prod['precio']}"
 
                 if prod.get('categoria_nombre'):
-                    part += f". Puedes encontrarlo en la categoría: **{prod['categoria_nombre']}**."
+                    part += f". Puedes encontrarlo en la categoría: **{prod['categoria_nombre']}**. Y descubre si tiene descuento"
                 response_parts.append(part)
             response_text = "\n".join(response_parts)
 
