@@ -201,27 +201,31 @@ def get_prompt_history(db: Session):
 
 # en crud.py
 # en crud.py
+# en crud.py
 def search_products_by_term(db: Session, search_term: str):
-    from sqlalchemy import text, func # Asegúrate de importar func
+    from sqlalchemy import text, func
 
-    # Usamos la función de PostgreSQL to_tsquery que es robusta
-    # y maneja múltiples palabras correctamente.
+    # Usamos websearch_to_tsquery, que es más flexible y entiende mejor el lenguaje natural.
+    # Especificamos 'spanish' para que maneje correctamente plurales y singulares en español.
     sql_query = text("""
         SELECT nombre, descripcion, especificacion, precio
         FROM products
         WHERE 
-            to_tsvector('simple', nombre || ' ' || descripcion || ' ' || coalesce(especificacion, ''))
-            @@ to_tsquery('simple', :term)
+            to_tsvector('spanish', nombre || ' ' || descripcion || ' ' || coalesce(especificacion, ''))
+            @@ websearch_to_tsquery('spanish', :term)
         ORDER BY 
-            similarity(nombre, :term) DESC,
-            similarity(descripcion, :term) DESC
+            ts_rank_cd(
+                to_tsvector('spanish', nombre || ' ' || descripcion || ' ' || coalesce(especificacion, '')),
+                websearch_to_tsquery('spanish', :term)
+            ) DESC
         LIMIT 5;
     """)
     
-    # Preparamos el término para que to_tsquery lo entienda bien (palabra1 & palabra2)
-    processed_term = ' & '.join(search_term.strip().split())
-    
-    result = db.execute(sql_query, {"term": processed_term})
+    result = db.execute(sql_query, {"term": search_term})
     
     products = [dict(zip(result.keys(), row)) for row in result]
+    
+    # Imprimimos en el log de Render para depurar
+    print(f"Búsqueda por '{search_term}' encontró: {len(products)} productos.")
+    
     return products
