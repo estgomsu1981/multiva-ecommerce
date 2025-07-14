@@ -44,6 +44,12 @@ class Category(CategoryBase):
     class Config:
         from_attributes = True
 
+
+class CategoryForProduct(CategoryBase):
+    id: int
+    class Config:
+        from_attributes = True
+
 # ==========================================================================
 # Esquemas para Usuarios y Autenticación (sin cambios)
 # ==========================================================================
