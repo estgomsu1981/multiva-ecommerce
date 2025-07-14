@@ -129,10 +129,9 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
 
     INSTRUCCIONES FINALES:
     1. Responde a la última pregunta del usuario.
-    2. Si la pregunta es sobre la empresa, pagos, envíos, etc., usa la BASE DE CONOCIMIENTO para responder.
+    2. Si la pregunta es general, usa la BASE DE CONOCIMIENTO para responder.
     3. Si la pregunta es sobre un producto, usa el CONTEXTO DE BÚSQUEDA DE PRODUCTOS.
     4. Basa tu respuesta ESTRICTAMENTE en la información proporcionada. No inventes datos.
-    5. Si no encuentras la respuesta en ninguna de las dos fuentes, di amablemente que no tienes esa información.
     """
     
     system_prompt = {"role": "system", "content": final_system_prompt}
