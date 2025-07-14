@@ -115,14 +115,14 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     # --- CONSTRUCCIÓN DEL PROMPT FINAL ---
 
     
-     #━━━━━━━━━━  B A S E   D E   C O N O C I M I E N T O  ━━━━━━━━━━
+     #━━━━━━━━━━  BASE DE CONOCIMIENTO  ━━━━━━━━━━
     active_prompt_object = crud.get_active_prompt(db)
     base_prompt_text = active_prompt_object.prompt_text
     
     final_system_prompt = f"""
     {base_prompt_text}
 
-    ━━━━━━━━━━  P R E G U N T A S   F R E C U E N T E S  ━━━━━━━━━━
+    ━━━━━━━━━━  PREGUNTAS FRECUENTES  ━━━━━━━━━━
     {faq_knowledge_base}
     
     --- CONTEXTO DE BÚSQUEDA DE PRODUCTOS ---
@@ -131,7 +131,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
 
     INSTRUCCIONES FINALES:
     1. Responde a la última pregunta del usuario.
-    2. Si la pregunta es general, usa la BASE DE CONOCIMIENTO para responder.
+    2. Si la pregunta es general, usa PREGUNTAS FRECUENTES y la BASE DE CONOCIMIENTO para responder.
     3. Si la pregunta es sobre un producto, usa el CONTEXTO DE BÚSQUEDA DE PRODUCTOS.
     4. Basa tu respuesta ESTRICTAMENTE en la información proporcionada. No inventes datos.
     """
