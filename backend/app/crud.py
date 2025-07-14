@@ -201,10 +201,8 @@ def get_prompt_history(db: Session):
 
 def search_products_by_term(db: Session, search_term: str):
     from sqlalchemy import text
-
     # Preparamos el término para la búsqueda
     processed_term = ' & '.join(search_term.strip().split())
-
     # --- CONSULTA SQL CON JOIN A CATEGORÍAS ---
     sql_query = text("""
         SELECT 
@@ -229,9 +227,27 @@ def search_products_by_term(db: Session, search_term: str):
     """)
     
     result = db.execute(sql_query, {"term": processed_term})
-    
     products = [dict(zip(result.keys(), row)) for row in result]
-    
     print(f"Búsqueda por '{search_term}' encontró: {len(products)} productos.")
-    
     return products
+
+def search_faq_by_term(db: Session, search_term: str):
+    from sqlalchemy import text
+    
+    sql_query = text("""
+        SELECT pregunta, respuesta
+        FROM faq
+        WHERE to_tsvector('spanish', pregunta || ' ' || respuesta) @@ websearch_to_tsquery('spanish', :term)
+        ORDER BY ts_rank_cd(
+            to_tsvector('spanish', pregunta || ' ' || respuesta),
+            websearch_to_tsquery('spanish', :term)
+        ) DESC
+        LIMIT 1; -- Solo queremos la pregunta/respuesta más relevante
+    """)
+    
+    result = db.execute(sql_query, {"term": search_term})
+    faq_item = result.first()
+    
+    if faq_item:
+        return dict(zip(result.keys(), faq_item))
+    return None

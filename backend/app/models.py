@@ -59,3 +59,10 @@ class PromptHistorial(Base):
     prompt_text = Column(Text, nullable=False)
     timestamp = Column(DateTime(timezone=True), server_default=func.now())
     modificado_por = Column(String) # Guardaremos el nombre de usuario del admin
+
+class Faq(Base):
+    __tablename__ = "faq"
+    id = Column(Integer, primary_key=True, index=True)
+    categoria = Column(String)
+    pregunta = Column(Text, nullable=False)
+    respuesta = Column(Text, nullable=False)
