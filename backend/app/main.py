@@ -121,6 +121,8 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     
     final_system_prompt = f"""
     {base_prompt_text}
+
+    ━━━━━━━━━━  P R E G U N T A S   F R E C U E N T E S  ━━━━━━━━━━
     {faq_knowledge_base}
     
     --- CONTEXTO DE BÚSQUEDA DE PRODUCTOS ---
