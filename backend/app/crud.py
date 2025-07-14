@@ -239,7 +239,6 @@ def create_pending_faq(db: Session, faq_data: schemas.FaqCreate):
     """Crea una nueva pregunta con estado 'pendiente'."""
     db_faq = models.Faq(
         pregunta=faq_data.pregunta, 
-        categoria=faq_data.categoria,
         estado='pendiente'
     )
     db.add(db_faq)

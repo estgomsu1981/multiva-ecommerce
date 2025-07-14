@@ -114,7 +114,6 @@ class PromptHistorial(PromptHistorialBase):
 
 class Faq(BaseModel):
     id: int
-    categoria: Optional[str] = None
     pregunta: str
     respuesta: Optional[str] = None
     estado: str
@@ -122,5 +121,4 @@ class Faq(BaseModel):
         from_attributes = True
 
 class FaqCreate(BaseModel):
-    pregunta: str
-    categoria: Optional[str] = None        
+    pregunta: str   
