@@ -233,7 +233,7 @@ def search_products_by_term(db: Session, search_term: str):
 
 def get_all_faqs(db: Session):
     """Obtiene todas las entradas de la tabla de FAQ."""
-    return db.query(models.Faq).all()
+    return db.query(models.Faq).filter(models.Faq.estado == 'respondida').all()
 
 def create_pending_faq(db: Session, faq_data: schemas.FaqCreate):
     """Crea una nueva pregunta con estado 'pendiente'."""
