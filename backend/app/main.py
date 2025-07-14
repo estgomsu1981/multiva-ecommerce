@@ -98,6 +98,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     # --- OBTENER TODA LA BASE DE CONOCIMIENTO (FAQ) ---
     all_faqs = crud.get_all_faqs(db)
     faq_knowledge_base = "\n".join([f"- Pregunta: {faq.pregunta}\n  Respuesta: {faq.respuesta}" for faq in all_faqs])
+    print(f"--- FAQS  KNOWLEDGE BASE'{faq_knowledge_base}' ---")
     
     # --- LÓGICA DE BÚSQUEDA DE PRODUCTOS (SI APLICA) ---
     search_results = []
