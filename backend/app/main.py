@@ -164,10 +164,10 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
         }
         return JSONResponse(content=final_response_json)
 
-else:
-    # --- LÓGICA DE CONVERSACIÓN GENERAL (SIN CAMBIOS) ---
-    # Si la intención NO es de búsqueda, dejamos que el LLM converse normalmente.
-    print("--- Intención general detectada. Llamando al LLM para conversar. ---")
+    else:
+        # --- LÓGICA DE CONVERSACIÓN GENERAL (SIN CAMBIOS) ---
+        # Si la intención NO es de búsqueda, dejamos que el LLM converse normalmente.
+        print("--- Intención general detectada. Llamando al LLM para conversar. ---")
     # ... (el resto del código para la llamada a Groq no cambia) ...
     
     # --- PASO 3: Generar la respuesta final ---
