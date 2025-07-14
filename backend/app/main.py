@@ -148,22 +148,35 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     
     # --- PASO 3: Generar la respuesta final ---
     
-    active_prompt_object = crud.get_active_prompt(db)
-    final_system_prompt_content = f"""
-    {active_prompt_object.prompt_text}
+    # en main.py -> chat_with_bot
 
-    --- CONTEXTO ADICIONAL DE LA BASE DE DATOS ---
+    # --- CONSTRUCCIÓN DEL PROMPT FINAL (VERSIÓN ANTI-ALUCINACIONES) ---
+    active_prompt_object = crud.get_active_prompt(db)
+    base_prompt_text = active_prompt_object.prompt_text # Esto contiene la personalidad del bot
+
+    # El contexto sigue siendo el mismo (resultados de la búsqueda o mensaje de "no encontrado")
+    contexto_adicional = "..." 
+
+    # El nuevo prompt del sistema es mucho más restrictivo
+    final_system_prompt = f"""
+    Tu personalidad base es la siguiente: {base_prompt_text}
+
+    Tu tarea principal es responder la última pregunta del usuario. Para hacerlo, sigue estas REGLAS ESTRICTAS:
+
+    1.  Revisa el siguiente bloque de "CONTEXTO". Esta es tu ÚNICA fuente de verdad.
+    2.  Si el CONTEXTO contiene la respuesta a la pregunta del usuario, formula una respuesta amigable en español usando ÚNICAMENTE la información del CONTEXTO. NO añadas ningún dato que no esté explícitamente en el contexto.
+    3.  Si el CONTEXTO dice "[No se encontraron productos para esta búsqueda]" o "[No se encontró información relevante en la base de conocimiento]", o si la información en el contexto no responde a la pregunta del usuario, tu ÚNICA respuesta permitida es: "Lo siento, no tengo información sobre eso en este momento. ¿Hay algo más en lo que pueda ayudarte?".
+    4.  NO intentes adivinar ni usar tu conocimiento general. Si no está en el CONTEXTO, no lo sabes.
+
+    --- CONTEXTO ---
     {contexto_adicional}
     --- FIN DEL CONTEXTO ---
-
-    Responde a la última pregunta del usuario.
-    - Si el CONTEXTO ADICIONAL contiene información, basa tu respuesta ESTRICTAMENTE en él.
-    - Si el CONTEXTO dice que no se encontró nada o no es relevante, informa al usuario amablemente que no tienes esa información.
-    - Si no hay contexto (porque fue un saludo o una pregunta muy general), simplemente conversa de forma natural.
     """
-    
-    system_prompt = {"role": "system", "content": final_system_prompt_content}
+
+    system_prompt = {"role": "system", "content": final_system_prompt}
     full_messages = [system_prompt] + messages
+
+# ... (el resto de la función para llamar a Groq no cambia) ...
     
     async with httpx.AsyncClient() as client:
         try:
