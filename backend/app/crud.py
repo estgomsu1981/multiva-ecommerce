@@ -234,3 +234,37 @@ def search_products_by_term(db: Session, search_term: str):
 def get_all_faqs(db: Session):
     """Obtiene todas las entradas de la tabla de FAQ."""
     return db.query(models.Faq).all()
+
+def create_pending_faq(db: Session, faq_data: schemas.FaqCreate):
+    """Crea una nueva pregunta con estado 'pendiente'."""
+    db_faq = models.Faq(
+        pregunta=faq_data.pregunta, 
+        categoria=faq_data.categoria,
+        estado='pendiente'
+    )
+    db.add(db_faq)
+    db.commit()
+    db.refresh(db_faq)
+    return db_faq
+
+def get_pending_faqs(db: Session):
+    """Obtiene todas las preguntas pendientes."""
+    return db.query(models.Faq).filter(models.Faq.estado == 'pendiente').all()
+
+def answer_faq(db: Session, faq_id: int, respuesta: str):
+    """Responde una pregunta pendiente y cambia su estado."""
+    db_faq = db.query(models.Faq).filter(models.Faq.id == faq_id).first()
+    if db_faq:
+        db_faq.respuesta = respuesta
+        db_faq.estado = 'respondida'
+        db.commit()
+        db.refresh(db_faq)
+    return db_faq
+
+def delete_faq(db: Session, faq_id: int):
+    """Elimina una pregunta de la base de datos."""
+    db_faq = db.query(models.Faq).filter(models.Faq.id == faq_id).first()
+    if db_faq:
+        db.delete(db_faq)
+        db.commit()
+    return db_faq

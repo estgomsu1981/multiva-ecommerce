@@ -66,3 +66,4 @@ class Faq(Base):
     categoria = Column(String)
     pregunta = Column(Text, nullable=False)
     respuesta = Column(Text, nullable=False)
+    estado = Column(String, default='pendiente', nullable=False)

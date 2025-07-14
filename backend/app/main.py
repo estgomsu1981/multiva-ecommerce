@@ -239,3 +239,29 @@ def search_products_tool(q: str, db: Session = Depends(get_db)):
     """
     results = crud.search_products_by_term(db, search_term=q)
     return {"results": results}
+
+@app.post("/faq/pending", response_model=schemas.Faq, tags=["FAQ"])
+def log_pending_question(faq_data: schemas.FaqCreate, db: Session = Depends(get_db)):
+    """Endpoint para que el frontend registre una pregunta que el bot no pudo responder."""
+    return crud.create_pending_faq(db, faq_data=faq_data)
+
+@app.get("/admin/faq/pending", response_model=List[schemas.Faq], tags=["Admin: FAQ"])
+def get_pending_questions(db: Session = Depends(get_db)):
+    # TODO: Proteger ruta
+    return crud.get_pending_faqs(db)
+
+@app.put("/admin/faq/{faq_id}/answer", response_model=schemas.Faq, tags=["Admin: FAQ"])
+def answer_pending_question(faq_id: int, respuesta: str, db: Session = Depends(get_db)):
+    # TODO: Proteger ruta
+    answered_faq = crud.answer_faq(db, faq_id=faq_id, respuesta=respuesta)
+    if not answered_faq:
+        raise HTTPException(status_code=404, detail="Pregunta no encontrada")
+    return answered_faq
+
+@app.delete("/admin/faq/{faq_id}", response_model=schemas.Faq, tags=["Admin: FAQ"])
+def delete_question(faq_id: int, db: Session = Depends(get_db)):
+    # TODO: Proteger ruta
+    deleted_faq = crud.delete_faq(db, faq_id=faq_id)
+    if not deleted_faq:
+        raise HTTPException(status_code=404, detail="Pregunta no encontrada")
+    return deleted_faq
