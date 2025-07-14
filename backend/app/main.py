@@ -85,6 +85,8 @@ def update_my_contact_info(
 # ==========================================================================
 
 # en main.py
+# en main.py
+
 @app.post("/chat/completions", tags=["Chat"])
 async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(get_db)):
     api_key = settings.GROQ_API_KEY
@@ -92,115 +94,48 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
         raise HTTPException(status_code=500, detail="API Key de Groq no configurada.")
     
     user_query = messages[-1]["content"] if messages else ""
-    
-    # --- PASO 1: Clasificar la intención del usuario en tres categorías ---
-    classifier_prompt = f"""
-    Analiza la pregunta del usuario y clasifícala en una de estas tres categorías: "busqueda_producto", "pregunta_general", o "saludo".
-    - "busqueda_producto": Si la pregunta es sobre un artículo específico, material, herramienta, precio o algo del inventario.
-    - "pregunta_general": Si la pregunta es sobre cómo comprar, envíos, pagos, garantía, la empresa, o servicios.
-    - "saludo": Si es un saludo, despedida o conversación casual.
 
-    Ejemplos:
-    - Usuario: "tienen martillos?" -> busqueda_producto
-    - Usuario: "cómo envían los pedidos?" -> pregunta_general
-    - Usuario: "hola" -> saludo
-    - Usuario: "venden muebles?" -> busqueda_producto
-    - Usuario: "qué garantía tienen?" -> pregunta_general
-
-    Pregunta del usuario: '{user_query}'
-    Categoría:
-    """
+    # --- OBTENER TODA LA BASE DE CONOCIMIENTO (FAQ) ---
+    all_faqs = crud.get_all_faqs(db)
+    faq_knowledge_base = "\n".join([f"- Pregunta: {faq.pregunta}\n  Respuesta: {faq.respuesta}" for faq in all_faqs])
     
-    intent = "general" # Por defecto, si algo falla
-    async with httpx.AsyncClient() as client:
-        try:
-            classifier_response = await client.post(
-                "https://api.groq.com/openai/v1/chat/completions",
-                json={ "model": "llama-3.1-8b-instant", "messages": [{"role": "user", "content": classifier_prompt}], "temperature": 0.0 },
-                headers={"Authorization": f"Bearer {api_key}"}
-            )
-            classifier_response.raise_for_status()
-            intent = classifier_response.json()['choices'][0]['message']['content'].lower().strip().replace('"', '')
-        except Exception as e:
-            print(f"Error en la clasificación de intención: {e}")
-            # Si la clasificación falla, continuamos como si fuera una pregunta general
-    
-    print(f"--- Intención detectada: {intent} ---")
-
-    # --- PASO 2: Actuar según la intención ---
-    
-    contexto_adicional = "No se realizó ninguna búsqueda de información específica."
-        
-    if "busqueda" in intent:
-        # --- LÓGICA DE BÚSQUEDA Y RESPUESTA DIRECTA ---
-        print(f"--- Búsqueda en DB activada para: '{user_query}' ---")
+    # --- LÓGICA DE BÚSQUEDA DE PRODUCTOS (SI APLICA) ---
+    search_results = []
+    keywords_busqueda = ["producto", "cemento", "martillo", "alicate", "herramienta", "mueble", "eléctrico", "piso", "cocina", "tienen", "venden", "cuánto cuesta", "precio de"]
+    if any(keyword in user_query.lower() for keyword in keywords_busqueda):
+        print(f"--- Búsqueda de productos activada para: '{user_query}' ---")
         search_results = crud.search_products_by_term(db, search_term=user_query)
         
-        if not search_results:
-            response_text = "Lo siento, no encontré productos que coincidan con tu búsqueda. ¿Puedo ayudarte con algo más?"
-        else:
-            # Formateamos la respuesta nosotros mismos en el backend
-            response_parts = ["¡Claro! Encontré estos productos relacionados:"]
-            for prod in search_results:
-                part = f"- **{prod.get('nombre', 'N/A')}**: {prod.get('descripcion', 'Sin descripción.')}"
-                if prod.get('especificacion'):
-                    part += f" (Especificación: {prod.get('especificacion')})"
-                if prod.get('precio') is not None:
-                    precio_formateado = f"{prod['precio']:,.2f}".replace(",", "X").replace(".", ",").replace("X", " ")
-                    part += f" - Precio: ₡{precio_formateado}"
-                if prod.get('categoria_nombre'):
-                    part += f". Puedes encontrarlo en la categoría: **{prod.get('categoria_nombre')}**."
-                response_parts.append(part)
-            response_text = "\n".join(response_parts)
-
-        # Creamos una respuesta JSON que imita la de Groq para que el frontend no se rompa
-        final_response_json = {
-            "choices": [{
-                "message": {
-                    "role": "assistant",
-                    "content": response_text
-                }
-            }]
-        }
-        return JSONResponse(content=final_response_json)
-
+    # Formatear resultados de productos para el contexto
+    if search_results:
+        contexto_productos = "Resultados de la búsqueda de productos: " + json.dumps(search_results, ensure_ascii=False)
     else:
-        # --- LÓGICA DE CONVERSACIÓN GENERAL (SIN CAMBIOS) ---
-        # Si la intención NO es de búsqueda, dejamos que el LLM converse normalmente.
-        print("--- Intención general detectada. Llamando al LLM para conversar. ---")
-    # ... (el resto del código para la llamada a Groq no cambia) ...
-    
-    # --- PASO 3: Generar la respuesta final ---
-    
-    # en main.py -> chat_with_bot
+        contexto_productos = "Resultados de la búsqueda de productos: [No se encontraron productos para esta búsqueda]"
 
-    # --- CONSTRUCCIÓN DEL PROMPT FINAL (VERSIÓN ANTI-ALUCINACIONES) ---
+    # --- CONSTRUCCIÓN DEL PROMPT FINAL ---
     active_prompt_object = crud.get_active_prompt(db)
-    base_prompt_text = active_prompt_object.prompt_text # Esto contiene la personalidad del bot
-
-    # El contexto sigue siendo el mismo (resultados de la búsqueda o mensaje de "no encontrado")
-    contexto_adicional = "..." 
-
-    # El nuevo prompt del sistema es mucho más restrictivo
+    base_prompt_text = active_prompt_object.prompt_text
+    
     final_system_prompt = f"""
-    Tu personalidad base es la siguiente: {base_prompt_text}
+    {base_prompt_text}
 
-    Tu tarea principal es responder la última pregunta del usuario. Para hacerlo, sigue estas REGLAS ESTRICTAS:
-
-    1.  Revisa el siguiente bloque de "CONTEXTO". Esta es tu ÚNICA fuente de verdad.
-    2.  Si el CONTEXTO contiene la respuesta a la pregunta del usuario, formula una respuesta amigable en español usando ÚNICAMENTE la información del CONTEXTO. NO añadas ningún dato que no esté explícitamente en el contexto.
-    3.  Si el CONTEXTO dice "[No se encontraron productos para esta búsqueda]" o "[No se encontró información relevante en la base de conocimiento]", o si la información en el contexto no responde a la pregunta del usuario, tu ÚNICA respuesta permitida es: "Lo siento, no tengo información sobre eso en este momento. ¿Hay algo más en lo que pueda ayudarte?".
-    4.  NO intentes adivinar ni usar tu conocimiento general. Si no está en el CONTEXTO, no lo sabes.
-
-    --- CONTEXTO ---
-    {contexto_adicional}
+    ━━━━━━━━━━  B A S E   D E   C O N O C I M I E N T O  ━━━━━━━━━━
+    {faq_knowledge_base}
+    
+    --- CONTEXTO DE BÚSQUEDA DE PRODUCTOS ---
+    {contexto_productos}
     --- FIN DEL CONTEXTO ---
-    """
 
+    INSTRUCCIONES FINALES:
+    1. Responde a la última pregunta del usuario.
+    2. Si la pregunta es sobre la empresa, pagos, envíos, etc., usa la BASE DE CONOCIMIENTO para responder.
+    3. Si la pregunta es sobre un producto, usa el CONTEXTO DE BÚSQUEDA DE PRODUCTOS.
+    4. Basa tu respuesta ESTRICTAMENTE en la información proporcionada. No inventes datos.
+    5. Si no encuentras la respuesta en ninguna de las dos fuentes, di amablemente que no tienes esa información.
+    """
+    
     system_prompt = {"role": "system", "content": final_system_prompt}
     full_messages = [system_prompt] + messages
-
-# ... (el resto de la función para llamar a Groq no cambia) ...
     
     async with httpx.AsyncClient() as client:
         try:
@@ -211,11 +146,9 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
             )
             response.raise_for_status()
             return response.json()
-        except httpx.HTTPStatusError as e:
-            raise HTTPException(status_code=e.response.status_code, detail=f"Error desde la API externa: {e.response.text}")
         except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error interno al generar la respuesta: {str(e)}")
-
+            print(f"Error en el flujo del chat: {e}")
+            raise HTTPException(status_code=500, detail="Error procesando la solicitud del chat.")
 # ==========================================================================
 # Endpoints Públicos (Categorías, Productos)
 # ==========================================================================

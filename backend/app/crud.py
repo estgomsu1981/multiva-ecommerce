@@ -231,23 +231,6 @@ def search_products_by_term(db: Session, search_term: str):
     print(f"Búsqueda por '{search_term}' encontró: {len(products)} productos.")
     return products
 
-def search_faq_by_term(db: Session, search_term: str):
-    from sqlalchemy import text
-    
-    sql_query = text("""
-        SELECT pregunta, respuesta
-        FROM faq
-        WHERE to_tsvector('spanish', pregunta || ' ' || respuesta) @@ websearch_to_tsquery('spanish', :term)
-        ORDER BY ts_rank_cd(
-            to_tsvector('spanish', pregunta || ' ' || respuesta),
-            websearch_to_tsquery('spanish', :term)
-        ) DESC
-        LIMIT 1; -- Solo queremos la pregunta/respuesta más relevante
-    """)
-    
-    result = db.execute(sql_query, {"term": search_term})
-    faq_item = result.first()
-    
-    if faq_item:
-        return dict(zip(result.keys(), faq_item))
-    return None
+def get_all_faqs(db: Session):
+    """Obtiene todas las entradas de la tabla de FAQ."""
+    return db.query(models.Faq).all()
