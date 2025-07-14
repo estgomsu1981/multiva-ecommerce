@@ -31,6 +31,7 @@ const AdminPanelPage = () => {
                         <div className="admin-menu-header">Gestión de AI</div>
                         <ul className="admin-submenu">
                             <li><Link to="/admin/prompt">› Administrar Prompt del ChatBot</Link></li>
+                            <li><Link to="/admin/preguntas-sin-responder">› Preguntas sin Responder</Link></li>
                         </ul>
                     </li>
                     {/* Botón para volver al sitio principal */}

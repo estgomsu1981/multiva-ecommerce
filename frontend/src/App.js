@@ -18,6 +18,7 @@ import CartPage from './pages/CartPage';
 import AyudaPage from './pages/AyudaPage';
 import CotizacionPage from './pages/CotizacionPage';
 import GestionPromptPage from './pages/GestionPromptPage';
+import PreguntasSinResponderPage from './pages/PreguntasSinResponderPage';
 
 import './style.css';
 
@@ -42,6 +43,7 @@ function App() {
                     <Route path="/ayuda" element={<AyudaPage />} />
                     <Route path="/solicitar-cotizacion" element={<CotizacionPage />} />
                     <Route path="/admin/prompt" element={<GestionPromptPage />} />
+                    <Route path="/admin/preguntas-sin-responder" element={<PreguntasSinResponderPage />} />
                 </Route>               
             </Routes>
         </Router>

@@ -65,5 +65,5 @@ class Faq(Base):
     id = Column(Integer, primary_key=True, index=True)
     categoria = Column(String)
     pregunta = Column(Text, nullable=False)
-    respuesta = Column(Text, nullable=False)
+    respuesta = Column(Text, nullable=True) 
     estado = Column(String, default='pendiente', nullable=False)
