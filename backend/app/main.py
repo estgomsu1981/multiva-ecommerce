@@ -98,8 +98,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     # --- OBTENER TODA LA BASE DE CONOCIMIENTO (FAQ) ---
     all_faqs = crud.get_all_faqs(db)
     faq_knowledge_base = "\n".join([f"- Pregunta: {faq.pregunta}\n  Respuesta: {faq.respuesta}" for faq in all_faqs])
-    print(f"--- FAQS  KNOWLEDGE BASE'{faq_knowledge_base}' ---")
-    
+   
     # --- LÓGICA DE BÚSQUEDA DE PRODUCTOS (SI APLICA) ---
     search_results = []
     keywords_busqueda = ["producto", "cemento", "martillo", "alicate", "herramienta", "mueble", "eléctrico", "piso", "cocina", "tienen", "venden", "cuánto cuesta", "precio de"]
@@ -137,6 +136,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     
     system_prompt = {"role": "system", "content": final_system_prompt}
     full_messages = [system_prompt] + messages
+    print(f"--- FULL MESGE {full_messages}' ---")
     
     async with httpx.AsyncClient() as client:
         try:
