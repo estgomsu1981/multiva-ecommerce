@@ -130,21 +130,45 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     # --- PASO 2: Actuar según la intención ---
     
     contexto_adicional = "No se realizó ninguna búsqueda de información específica."
-    
-    if "busqueda_producto" in intent:
-        print(f"--- Buscando productos para: '{user_query}' ---")
+        
+    if "busqueda" in intent:
+        # --- LÓGICA DE BÚSQUEDA Y RESPUESTA DIRECTA ---
+        print(f"--- Búsqueda en DB activada para: '{user_query}' ---")
         search_results = crud.search_products_by_term(db, search_term=user_query)
-        if search_results:
-            contexto_adicional = "Resultados de la base de datos de productos: " + json.dumps(search_results, ensure_ascii=False)
+        
+        if not search_results:
+            response_text = "Lo siento, no encontré productos que coincidan con tu búsqueda. ¿Puedo ayudarte con algo más?"
         else:
-            contexto_adicional = "Resultados de la base de datos de productos: []"
-    
-    elif "pregunta_general" in intent:
-        print(f"--- Buscando en FAQ para: '{user_query}' ---")
-        faq_result = crud.search_faq_by_term(db, search_term=user_query)
-        if faq_result:
-            print(f"Búsqueda en FAQ por '{user_query}' encontró 1 resultado.")
-            contexto_adicional = "Información encontrada en la base de conocimiento (FAQ): " + json.dumps(faq_result, ensure_ascii=False)
+            # Formateamos la respuesta nosotros mismos en el backend
+            response_parts = ["¡Claro! Encontré estos productos relacionados:"]
+            for prod in search_results:
+                part = f"- **{prod.get('nombre', 'N/A')}**: {prod.get('descripcion', 'Sin descripción.')}"
+                if prod.get('especificacion'):
+                    part += f" (Especificación: {prod.get('especificacion')})"
+                if prod.get('precio') is not None:
+                    precio_formateado = f"{prod['precio']:,.2f}".replace(",", "X").replace(".", ",").replace("X", " ")
+                    part += f" - Precio: ₡{precio_formateado}"
+                if prod.get('categoria_nombre'):
+                    part += f". Puedes encontrarlo en la categoría: **{prod.get('categoria_nombre')}**."
+                response_parts.append(part)
+            response_text = "\n".join(response_parts)
+
+        # Creamos una respuesta JSON que imita la de Groq para que el frontend no se rompa
+        final_response_json = {
+            "choices": [{
+                "message": {
+                    "role": "assistant",
+                    "content": response_text
+                }
+            }]
+        }
+        return JSONResponse(content=final_response_json)
+
+else:
+    # --- LÓGICA DE CONVERSACIÓN GENERAL (SIN CAMBIOS) ---
+    # Si la intención NO es de búsqueda, dejamos que el LLM converse normalmente.
+    print("--- Intención general detectada. Llamando al LLM para conversar. ---")
+    # ... (el resto del código para la llamada a Groq no cambia) ...
     
     # --- PASO 3: Generar la respuesta final ---
     
