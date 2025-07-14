@@ -113,13 +113,14 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
         contexto_productos = "Resultados de la búsqueda de productos: [No se encontraron productos para esta búsqueda]"
 
     # --- CONSTRUCCIÓN DEL PROMPT FINAL ---
+
+    
+     #━━━━━━━━━━  B A S E   D E   C O N O C I M I E N T O  ━━━━━━━━━━
     active_prompt_object = crud.get_active_prompt(db)
     base_prompt_text = active_prompt_object.prompt_text
     
     final_system_prompt = f"""
     {base_prompt_text}
-
-    ━━━━━━━━━━  B A S E   D E   C O N O C I M I E N T O  ━━━━━━━━━━
     {faq_knowledge_base}
     
     --- CONTEXTO DE BÚSQUEDA DE PRODUCTOS ---
