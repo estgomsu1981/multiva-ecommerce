@@ -143,6 +143,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
         print(f"--- Buscando en FAQ para: '{user_query}' ---")
         faq_result = crud.search_faq_by_term(db, search_term=user_query)
         if faq_result:
+            print(f"Búsqueda en FAQ por '{user_query}' encontró 1 resultado.")
             contexto_adicional = "Información encontrada en la base de conocimiento (FAQ): " + json.dumps(faq_result, ensure_ascii=False)
     
     # --- PASO 3: Generar la respuesta final ---
