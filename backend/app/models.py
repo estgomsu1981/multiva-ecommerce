@@ -63,7 +63,7 @@ class PromptHistorial(Base):
 class Faq(Base):
     __tablename__ = "faq"
     id = Column(Integer, primary_key=True, index=True)
-    categoria = Column(String)
+    categoria = Column(String, nullable=True)
     pregunta = Column(Text, nullable=False)
-    respuesta = Column(Text, nullable=True) 
+    respuesta = Column(Text, nullable=True) # <-- CLAVE: nullable=True
     estado = Column(String, default='pendiente', nullable=False)
