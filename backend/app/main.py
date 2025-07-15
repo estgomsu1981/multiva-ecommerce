@@ -269,17 +269,18 @@ def delete_question(faq_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Pregunta no encontrada")
     return deleted_faq
 
-app.get("/products/", response_model=List[schemas.Product], tags=["Products"])
+@app.get("/products/", response_model=List[schemas.Product], tags=["Products"])
 def read_all_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """
-    Obtiene una lista de todos los productos.
+    Obtiene una lista de todos los productos, incluyendo la información de su categoría.
     """
     products = crud.get_products(db, skip=skip, limit=limit)
     return products
-# -------------------------
+# ------------------------------------
 
 @app.get("/products/discounted", response_model=List[schemas.Product], tags=["Products"])
 def read_discounted_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     products = crud.get_discounted_products(db, skip=skip, limit=limit)
     return products
+
 
