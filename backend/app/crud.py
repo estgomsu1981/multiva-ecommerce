@@ -50,7 +50,7 @@ def delete_category(db: Session, category_id: int):
 
 # LEER todos los productos
 def get_products(db: Session, skip: int = 0, limit: int = 100):
-    return db.query(models.Product).offset(skip).limit(limit).all()
+    return db.query(models.Product).options(joinedload(models.Product.category)).offset(skip).limit(limit).all()
 
 # LEER todos los productos de una categoría específica
 def get_products_by_category(db: Session, category_id: int):

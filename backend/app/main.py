@@ -282,3 +282,4 @@ def read_all_products(skip: int = 0, limit: int = 100, db: Session = Depends(get
 def read_discounted_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     products = crud.get_discounted_products(db, skip=skip, limit=limit)
     return products
+
