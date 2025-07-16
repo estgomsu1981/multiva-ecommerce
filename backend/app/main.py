@@ -248,17 +248,90 @@ def get_prompt_history_list(db: Session = Depends(get_db)):
 
 @app.post("/upload", tags=["Utilities"])
 async def upload_image(file: UploadFile = File(...)):
-    # ...
-    return {"url": "dummy_url"} # Reemplaza con tu lógica de Cloudinary
+    try:
+        result = security.upload_to_cloudinary(file.file, "multiva_ecommerce") # Asumiendo que la lógica está en security.py
+        return {"url": result.get("secure_url")}
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error al subir el archivo: {str(e)}")
 
 @app.get("/configuracion/{clave}", response_model=schemas.Configuracion, tags=["Configuración"])
 def read_configuracion(clave: str, db: Session = Depends(get_db)):
-    # ...
+    config = crud.get_configuracion(db, clave=clave)
+    if config is None:
+        return crud.set_configuracion(db, clave=clave, valor="0")
+    return config
 
-@app.put("/configuracion/{clave}", response_model=schemas.Configuracion, tags=["Configuración"])
+@@app.put("/configuracion/{clave}", response_model=schemas.Configuracion, tags=["Configuración"])
 def update_configuracion(clave: str, valor: str, db: Session = Depends(get_db)):
-    # ...
+    return crud.set_configuracion(db, clave=clave, valor=valor)
+
+@app.get("/admin/prompt", response_model=schemas.PromptHistorial, tags=["Admin: Prompt"])
+def get_current_prompt(db: Session = Depends(get_db)):
+    # TODO: Proteger esta ruta
+    return crud.get_active_prompt(db)
+
+@app.put("/admin/prompt", response_model=schemas.PromptHistorial, tags=["Admin: Prompt"])
+def set_current_prompt(
+    prompt_data: schemas.PromptHistorialBase,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(security.get_current_user)
+):
+    prompt_to_create = schemas.PromptHistorialCreate(
+        prompt_text=prompt_data.prompt_text,
+        modificado_por=current_user.usuario
+    )
+    return crud.create_new_prompt(db, prompt_data=prompt_to_create)
+
+@app.get("/admin/prompt/history", response_model=List[schemas.PromptHistorial], tags=["Admin: Prompt"])
+def get_prompt_history_list(db: Session = Depends(get_db)):
+    # TODO: Proteger esta ruta
+    return crud.get_prompt_history(db)
+
+@app.get("/tools/search_products", tags=["Tools"])
+def search_products_tool(q: str, db: Session = Depends(get_db)):
+    """
+    Herramienta de búsqueda de productos para ser consumida por el LLM.
+    Recibe un término de búsqueda 'q'.
+    """
+    results = crud.search_products_by_term(db, search_term=q)
+    return {"results": results}
 
 @app.post("/faq/pending", response_model=schemas.Faq, tags=["FAQ"])
 def log_pending_question(faq_data: schemas.FaqCreate, db: Session = Depends(get_db)):
+    """Endpoint para que el frontend registre una pregunta que el bot no pudo responder."""
     return crud.create_pending_faq(db, faq_data=faq_data)
+
+@app.get("/admin/faq/pending", response_model=List[schemas.Faq], tags=["Admin: FAQ"])
+def get_pending_questions(db: Session = Depends(get_db)):
+    # TODO: Proteger ruta
+    return crud.get_pending_faqs(db)
+
+@app.put("/admin/faq/{faq_id}/answer", response_model=schemas.Faq, tags=["Admin: FAQ"])
+def answer_pending_question(faq_id: int, respuesta: str, db: Session = Depends(get_db)):
+    # TODO: Proteger ruta
+    answered_faq = crud.answer_faq(db, faq_id=faq_id, respuesta=respuesta)
+    if not answered_faq:
+        raise HTTPException(status_code=404, detail="Pregunta no encontrada")
+    return answered_faq
+
+@app.delete("/admin/faq/{faq_id}", response_model=schemas.Faq, tags=["Admin: FAQ"])
+def delete_question(faq_id: int, db: Session = Depends(get_db)):
+    # TODO: Proteger ruta
+    deleted_faq = crud.delete_faq(db, faq_id=faq_id)
+    if not deleted_faq:
+        raise HTTPException(status_code=404, detail="Pregunta no encontrada")
+    return deleted_faq
+
+@app.get("/products/", response_model=List[schemas.Product], tags=["Products"])
+def read_all_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    """
+    Obtiene una lista de todos los productos, incluyendo la información de su categoría.
+    """
+    products = crud.get_products(db, skip=skip, limit=limit)
+    return products
+# ------------------------------------
+
+@app.get("/products/discounted", response_model=List[schemas.Product], tags=["Products"])
+def read_discounted_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    products = crud.get_discounted_products(db, skip=skip, limit=limit)
+    return products
