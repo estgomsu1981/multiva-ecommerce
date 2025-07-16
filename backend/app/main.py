@@ -261,7 +261,7 @@ def read_configuracion(clave: str, db: Session = Depends(get_db)):
         return crud.set_configuracion(db, clave=clave, valor="0")
     return config
 
-@@app.put("/configuracion/{clave}", response_model=schemas.Configuracion, tags=["Configuración"])
+@app.put("/configuracion/{clave}", response_model=schemas.Configuracion, tags=["Configuración"])
 def update_configuracion(clave: str, valor: str, db: Session = Depends(get_db)):
     return crud.set_configuracion(db, clave=clave, valor=valor)
 
