@@ -69,11 +69,7 @@ def read_users_me(current_user: models.User = Depends(security.get_current_user)
     return current_user
 
 @app.put("/users/me/contact", response_model=schemas.User, tags=["Users"])
-def update_my_contact_info(
-    contact_data: schemas.UserContactUpdate, 
-    db: Session = Depends(get_db), 
-    current_user: models.User = Depends(security.get_current_user)
-):
+def update_my_contact_info(contact_data: schemas.UserContactUpdate, db: Session = Depends(get_db), current_user: models.User = Depends(security.get_current_user)):
     return crud.update_user(db, user_id=current_user.id, user_update=contact_data)
 
 # ==========================================================================
@@ -90,13 +86,13 @@ def read_products_for_category(category_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Categoría no encontrada")
     return crud.get_products_by_category(db, category_id=category_id)
 
-@app.get("/products/discounted", response_model=List[schemas.Product], tags=["Public"])
-def read_discounted_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return crud.get_discounted_products(db, skip=skip, limit=limit)
-
 @app.get("/products/", response_model=List[schemas.Product], tags=["Public"])
 def read_all_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_products(db, skip=skip, limit=limit)
+
+@app.get("/products/discounted", response_model=List[schemas.Product], tags=["Public"])
+def read_discounted_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return crud.get_discounted_products(db, skip=skip, limit=limit)
 
 # ==========================================================================
 # Endpoints del Chatbot
@@ -110,27 +106,20 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     
     user_query = messages[-1]["content"] if messages else ""
 
-    # --- OBTENER TODA LA BASE DE CONOCIMIENTO (FAQ) ---
     all_faqs = crud.get_all_faqs(db)
     faq_knowledge_base = "\n".join([f"- Pregunta: {faq.pregunta}\n  Respuesta: {faq.respuesta}" for faq in all_faqs])
    
-    # --- LÓGICA DE BÚSQUEDA DE PRODUCTOS (SI APLICA) ---
     search_results = []
     keywords_busqueda = ["producto", "cemento", "martillo", "alicate", "herramienta", "mueble", "eléctrico", "piso", "cocina", "tienen", "venden", "cuánto cuesta", "precio de"]
     if any(keyword in user_query.lower() for keyword in keywords_busqueda):
         print(f"--- Búsqueda de productos activada para: '{user_query}' ---")
         search_results = crud.search_products_by_term(db, search_term=user_query)
         
-    # Formatear resultados de productos para el contexto
     if search_results:
         contexto_productos = "Resultados de la búsqueda de productos: " + json.dumps(search_results, ensure_ascii=False)
     else:
         contexto_productos = "Resultados de la búsqueda de productos: [No se encontraron productos para esta búsqueda]"
 
-    # --- CONSTRUCCIÓN DEL PROMPT FINAL ---
-
-    
-     #━━━━━━━━━━  BASE DE CONOCIMIENTO  ━━━━━━━━━━
     active_prompt_object = crud.get_active_prompt(db)
     base_prompt_text = active_prompt_object.prompt_text
     
@@ -173,7 +162,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
 # Endpoints de Administración (TODO: Protegerlos)
 # ==========================================================================
 
-# --- GESTIÓN DE USUARIOS ---
+# --- Admin: Usuarios ---
 @app.get("/admin/users", response_model=List[schemas.User], tags=["Admin"])
 def admin_read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_users(db, skip=skip, limit=limit)
@@ -181,63 +170,67 @@ def admin_read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_
 @app.put("/admin/users/{user_id}", response_model=schemas.User, tags=["Admin"])
 def admin_update_user(user_id: int, user_update: schemas.UserUpdate, db: Session = Depends(get_db)):
     updated_user = crud.update_user(db, user_id=user_id, user_update=user_update)
-    if updated_user is None: raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    if not updated_user: raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return updated_user
 
 @app.delete("/admin/users/{user_id}", response_model=schemas.User, tags=["Admin"])
 def admin_delete_user(user_id: int, db: Session = Depends(get_db)):
     deleted_user = crud.delete_user(db, user_id=user_id)
-    if deleted_user is None: raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    if not deleted_user: raise HTTPException(status_code=404, detail="Usuario no encontrado")
     return deleted_user
 
-# --- GESTIÓN DE PRODUCTOS ---
-@app.post("/admin/products", response_model=schemas.Product, tags=["Admin"])
+# --- Admin: Productos ---
+@app.post("/admin/products/", response_model=schemas.Product, tags=["Admin"])
 def admin_create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
-    return crud.create_product(db=db, product=product)
+    return crud.create_product(db, product=product)
 
 @app.put("/admin/products/{product_id}", response_model=schemas.Product, tags=["Admin"])
-def admin_update_product(product_id: int, product: schemas.ProductCreate, db: Session = Depends(get_db)):
-    updated_product = crud.update_product(db, product_id=product_id, product_update=product)
-    if updated_product is None: raise HTTPException(status_code=404, detail="Producto no encontrado")
-    return updated_product
+def admin_update_product(product_id: int, product: schemas.ProductUpdate, db: Session = Depends(get_db)):
+    updated = crud.update_product(db, product_id=product_id, product_update=product)
+    if not updated: raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return updated
 
 @app.delete("/admin/products/{product_id}", response_model=schemas.Product, tags=["Admin"])
 def admin_delete_product(product_id: int, db: Session = Depends(get_db)):
-    deleted_product = crud.delete_product(db, product_id=product_id)
-    if deleted_product is None: raise HTTPException(status_code=404, detail="Producto no encontrado")
-    return deleted_product
+    deleted = crud.delete_product(db, product_id=product_id)
+    if not deleted: raise HTTPException(status_code=404, detail="Producto no encontrado")
+    return deleted
 
-# --- GESTIÓN DE CATEGORÍAS ---
-@app.post("/admin/categories", response_model=schemas.Category, tags=["Admin"])
+# --- Admin: Categorías ---
+@app.post("/admin/categories/", response_model=schemas.Category, tags=["Admin"])
 def admin_create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
-    return crud.create_category(db=db, category=category)
+    return crud.create_category(db, category=category)
 
 @app.put("/admin/categories/{category_id}", response_model=schemas.Category, tags=["Admin"])
 def admin_update_category(category_id: int, category: schemas.CategoryCreate, db: Session = Depends(get_db)):
-    return crud.update_category(db, category_id=category_id, category_details=category)
+    updated = crud.update_category(db, category_id=category_id, category_details=category)
+    if not updated: raise HTTPException(status_code=404, detail="Categoría no encontrada")
+    return updated
 
 @app.delete("/admin/categories/{category_id}", response_model=schemas.Category, tags=["Admin"])
 def admin_delete_category(category_id: int, db: Session = Depends(get_db)):
-    return crud.delete_category(db, category_id=category_id)
+    deleted = crud.delete_category(db, category_id=category_id)
+    if not deleted: raise HTTPException(status_code=404, detail="Categoría no encontrada")
+    return deleted
 
-# --- GESTIÓN DE FAQ ---
+# --- Admin: FAQ ---
 @app.get("/admin/faq/pending", response_model=List[schemas.Faq], tags=["Admin"])
 def get_pending_questions(db: Session = Depends(get_db)):
     return crud.get_pending_faqs(db)
 
 @app.put("/admin/faq/{faq_id}/answer", response_model=schemas.Faq, tags=["Admin"])
 def answer_pending_question(faq_id: int, respuesta: str, db: Session = Depends(get_db)):
-    answered_faq = crud.answer_faq(db, faq_id=faq_id, respuesta=respuesta)
-    if not answered_faq: raise HTTPException(status_code=404, detail="Pregunta no encontrada")
-    return answered_faq
+    answered = crud.answer_faq(db, faq_id=faq_id, respuesta=respuesta)
+    if not answered: raise HTTPException(status_code=404, detail="Pregunta no encontrada")
+    return answered
 
 @app.delete("/admin/faq/{faq_id}", response_model=schemas.Faq, tags=["Admin"])
 def delete_question(faq_id: int, db: Session = Depends(get_db)):
-    deleted_faq = crud.delete_faq(db, faq_id=faq_id)
-    if not deleted_faq: raise HTTPException(status_code=404, detail="Pregunta no encontrada")
-    return deleted_faq
+    deleted = crud.delete_faq(db, faq_id=faq_id)
+    if not deleted: raise HTTPException(status_code=404, detail="Pregunta no encontrada")
+    return deleted
 
-# --- GESTIÓN DE PROMPTS ---
+# --- Admin: Prompts ---
 @app.get("/admin/prompt", response_model=schemas.PromptHistorial, tags=["Admin"])
 def get_current_prompt(db: Session = Depends(get_db)):
     return crud.get_active_prompt(db)
@@ -259,9 +252,8 @@ def get_prompt_history_list(db: Session = Depends(get_db)):
 @app.post("/upload", tags=["Utilities"])
 async def upload_image(file: UploadFile = File(...)):
     try:
-        # Asumiendo que has movido la lógica de cloudinary a un lugar apropiado
-        # Por ejemplo, una función de ayuda en security.py o un nuevo archivo utils.py
-        result = security.upload_to_cloudinary(file.file) 
+        # Asumiendo que esta función existe en tu módulo de seguridad
+        result = security.upload_to_cloudinary(file.file, "multiva_ecommerce") 
         return {"url": result.get("secure_url")}
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error al subir el archivo: {str(e)}")
@@ -269,7 +261,7 @@ async def upload_image(file: UploadFile = File(...)):
 @app.get("/configuracion/{clave}", response_model=schemas.Configuracion, tags=["Configuración"])
 def read_configuracion(clave: str, db: Session = Depends(get_db)):
     config = crud.get_configuracion(db, clave=clave)
-    if config is None: return crud.set_configuracion(db, clave=clave, valor="0")
+    if not config: return crud.set_configuracion(db, clave=clave, valor="0")
     return config
 
 @app.put("/configuracion/{clave}", response_model=schemas.Configuracion, tags=["Configuración"])
