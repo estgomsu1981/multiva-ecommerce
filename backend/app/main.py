@@ -72,7 +72,28 @@ def update_my_contact_info(contact_data: schemas.UserContactUpdate, db: Session 
 # ==========================================================================
 # Endpoints Públicos (Catálogo y Productos)
 # ==========================================================================
-# en main.py
+
+@app.get("/categories/", response_model=List[schemas.Category], tags=["Public"])
+def read_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return crud.get_categories(db, skip=skip, limit=limit)
+
+@app.get("/categories/{category_id}/products", response_model=List[schemas.Product], tags=["Public"])
+def read_products_for_category(category_id: int, db: Session = Depends(get_db)):
+    if not crud.get_category(db, category_id=category_id):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Categoría no encontrada")
+    return crud.get_products_by_category(db, category_id=category_id)
+
+@app.get("/products/", response_model=List[schemas.Product], tags=["Public"])
+def read_all_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return crud.get_products(db, skip=skip, limit=limit)
+
+@app.get("/products/discounted", response_model=List[schemas.Product], tags=["Public"])
+def read_discounted_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+    return crud.get_discounted_products(db, skip=skip, limit=limit)
+
+# ==========================================================================
+# Endpoints del Chatbot
+# ==========================================================================
 
 @app.post("/chat/completions", tags=["Chat"])
 async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(get_db)):
@@ -85,7 +106,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     # --- OBTENER TODA LA BASE DE CONOCIMIENTO (FAQ) ---
     all_faqs = crud.get_all_faqs(db)
     faq_knowledge_base = "\n".join([f"- Pregunta: {faq.pregunta}\n  Respuesta: {faq.respuesta}" for faq in all_faqs])
-    
+   
     # --- LÓGICA DE BÚSQUEDA DE PRODUCTOS (SI APLICA) ---
     search_results = []
     keywords_busqueda = ["producto", "cemento", "martillo", "alicate", "herramienta", "mueble", "eléctrico", "piso", "cocina", "tienen", "venden", "cuánto cuesta", "precio de"]
@@ -100,13 +121,16 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
         contexto_productos = "Resultados de la búsqueda de productos: [No se encontraron productos para esta búsqueda]"
 
     # --- CONSTRUCCIÓN DEL PROMPT FINAL ---
+
+    
+     #━━━━━━━━━━  BASE DE CONOCIMIENTO  ━━━━━━━━━━
     active_prompt_object = crud.get_active_prompt(db)
     base_prompt_text = active_prompt_object.prompt_text
     
     final_system_prompt = f"""
     {base_prompt_text}
 
-    ━━━━━━━━━━  B A S E   D E   C O N O C I M I E N T O  ━━━━━━━━━━
+    ━━━━━━━━━━  PREGUNTAS FRECUENTES  ━━━━━━━━━━
     {faq_knowledge_base}
     
     --- CONTEXTO DE BÚSQUEDA DE PRODUCTOS ---
@@ -115,14 +139,14 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
 
     INSTRUCCIONES FINALES:
     1. Responde a la última pregunta del usuario.
-    2. Si la pregunta es sobre la empresa, pagos, envíos, etc., usa la BASE DE CONOCIMIENTO para responder.
+    2. Si la pregunta es general, usa PREGUNTAS FRECUENTES y la BASE DE CONOCIMIENTO para responder.
     3. Si la pregunta es sobre un producto, usa el CONTEXTO DE BÚSQUEDA DE PRODUCTOS.
     4. Basa tu respuesta ESTRICTAMENTE en la información proporcionada. No inventes datos.
-    5. Si no encuentras la respuesta en ninguna de las dos fuentes, di amablemente que no tienes esa información.
     """
     
     system_prompt = {"role": "system", "content": final_system_prompt}
     full_messages = [system_prompt] + messages
+    print(f"--- FULL MESGE {full_messages}' ---")
     
     async with httpx.AsyncClient() as client:
         try:
@@ -136,7 +160,6 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
         except Exception as e:
             print(f"Error en el flujo del chat: {e}")
             raise HTTPException(status_code=500, detail="Error procesando la solicitud del chat.")
-        
 
 # ==========================================================================
 # Endpoints de Administración (TODO: Protegerlos con dependencias de rol)
