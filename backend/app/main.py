@@ -84,6 +84,13 @@ def update_my_contact_info(
 def read_categories(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_categories(db, skip=skip, limit=limit)
 
+@app.get("/categories/{category_id}", response_model=schemas.Category, tags=["Public"])
+def read_category(category_id: int, db: Session = Depends(get_db)):
+    db_category = crud.get_category(db, category_id=category_id)
+    if db_category is None:
+        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+    return db_category
+
 @app.get("/categories/{category_id}/products", response_model=List[schemas.Product], tags=["Public"])
 def read_products_for_category(category_id: int, db: Session = Depends(get_db)):
     if not crud.get_category(db, category_id=category_id):

@@ -57,9 +57,11 @@ def get_products_by_category(db: Session, category_id: int):
     return db.query(models.Product).filter(models.Product.category_id == category_id).all()
 
 # CREAR un nuevo producto
-def create_product(db: Session, product: schemas.ProductCreate, category_id: int):
-    # Usamos model_dump para convertir el esquema Pydantic a un diccionario
-    db_product = models.Product(**product.model_dump(), category_id=category_id)
+def create_product(db: Session, product: schemas.ProductCreate):
+    # model_dump() convierte el esquema Pydantic a un diccionario que
+    # SQLAlchemy puede usar para crear el nuevo objeto Product.
+    # Como ProductCreate ya incluye 'category_id', no necesitamos pasarlo por separado.
+    db_product = models.Product(**product.model_dump())
     db.add(db_product)
     db.commit()
     db.refresh(db_product)
