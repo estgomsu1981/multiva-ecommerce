@@ -26,6 +26,16 @@ class Product(ProductBase):
     class Config:
         from_attributes = True
 
+class ProductUpdate(BaseModel):
+    nombre: Optional[str] = None
+    descripcion: Optional[str] = None
+    especificacion: Optional[str] = None
+    precio: Optional[float] = None
+    minimo_compra: Optional[int] = None
+    descuento: Optional[int] = None
+    imagen_url: Optional[str] = None
+    category_id: Optional[int] = None
+
 # ==========================================================================
 # Esquemas para Categorías (MUCHO MÁS SIMPLE AHORA)
 # ==========================================================================
