@@ -113,20 +113,27 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
     
     user_query = messages[-1]["content"] if messages else ""
 
+    # --- OBTENER TODA LA BASE DE CONOCIMIENTO (FAQ) ---
     all_faqs = crud.get_all_faqs(db)
     faq_knowledge_base = "\n".join([f"- Pregunta: {faq.pregunta}\n  Respuesta: {faq.respuesta}" for faq in all_faqs])
    
+    # --- LÓGICA DE BÚSQUEDA DE PRODUCTOS (SI APLICA) ---
     search_results = []
     keywords_busqueda = ["producto", "cemento", "martillo", "alicate", "herramienta", "mueble", "eléctrico", "piso", "cocina", "tienen", "venden", "cuánto cuesta", "precio de"]
     if any(keyword in user_query.lower() for keyword in keywords_busqueda):
         print(f"--- Búsqueda de productos activada para: '{user_query}' ---")
         search_results = crud.search_products_by_term(db, search_term=user_query)
         
+    # Formatear resultados de productos para el contexto
     if search_results:
         contexto_productos = "Resultados de la búsqueda de productos: " + json.dumps(search_results, ensure_ascii=False)
     else:
         contexto_productos = "Resultados de la búsqueda de productos: [No se encontraron productos para esta búsqueda]"
 
+    # --- CONSTRUCCIÓN DEL PROMPT FINAL ---
+
+    
+     #━━━━━━━━━━  BASE DE CONOCIMIENTO  ━━━━━━━━━━
     active_prompt_object = crud.get_active_prompt(db)
     base_prompt_text = active_prompt_object.prompt_text
     
@@ -163,7 +170,7 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
         except Exception as e:
             print(f"Error en el flujo del chat: {e}")
             raise HTTPException(status_code=500, detail="Error procesando la solicitud del chat.")
-
+        
 # ==========================================================================
 # Endpoints de Administración (TODO: Protegerlos)
 # ==========================================================================
