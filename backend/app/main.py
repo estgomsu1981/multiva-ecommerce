@@ -162,58 +162,58 @@ async def chat_with_bot(messages: List[Dict[str, Any]], db: Session = Depends(ge
 # ==========================================================================
 
 # --- Admin: Productos ---
-@app.get("/admin/products", response_model=List[schemas.Product], tags=["Admin"])
-def admin_read_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+@app.get("/products/", response_model=List[schemas.Product], tags=["Admin: Products"])
+def read_products(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_products(db, skip=skip, limit=limit)
 
-@app.post("/admin/products/", response_model=schemas.Product, tags=["Admin"])
-def admin_create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
+@app.post("/products/", response_model=schemas.Product, tags=["Admin: Products"])
+def create_product(product: schemas.ProductCreate, db: Session = Depends(get_db)):
     return crud.create_product(db, product=product)
 
-@app.put("/admin/products/{product_id}", response_model=schemas.Product, tags=["Admin"])
-def admin_update_product(product_id: int, product: schemas.ProductUpdate, db: Session = Depends(get_db)):
+@app.put("/products/{product_id}", response_model=schemas.Product, tags=["Admin: Products"])
+def update_product(product_id: int, product: schemas.ProductUpdate, db: Session = Depends(get_db)):
     updated = crud.update_product(db, product_id=product_id, product_update=product)
-    if not updated: raise HTTPException(status_code=404, detail="Producto no encontrado")
+    if not updated: raise HTTPException(404, "Producto no encontrado")
     return updated
 
-@app.delete("/admin/products/{product_id}", response_model=schemas.Product, tags=["Admin"])
-def admin_delete_product(product_id: int, db: Session = Depends(get_db)):
+@app.delete("/products/{product_id}", response_model=schemas.Product, tags=["Admin: Products"])
+def delete_product(product_id: int, db: Session = Depends(get_db)):
     deleted = crud.delete_product(db, product_id=product_id)
-    if not deleted: raise HTTPException(status_code=404, detail="Producto no encontrado")
+    if not deleted: raise HTTPException(404, "Producto no encontrado")
     return deleted
 
 # --- Admin: Categorías ---
-@app.post("/admin/categories/", response_model=schemas.Category, tags=["Admin"])
-def admin_create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
+@app.post("/categories/", response_model=schemas.Category, tags=["Admin: Categories"])
+def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
     return crud.create_category(db, category=category)
 
-@app.put("/admin/categories/{category_id}", response_model=schemas.Category, tags=["Admin"])
-def admin_update_category(category_id: int, category: schemas.CategoryCreate, db: Session = Depends(get_db)):
+@app.put("/categories/{category_id}", response_model=schemas.Category, tags=["Admin: Categories"])
+def update_category(category_id: int, category: schemas.CategoryCreate, db: Session = Depends(get_db)):
     updated = crud.update_category(db, category_id=category_id, category_details=category)
     if not updated: raise HTTPException(status_code=404, detail="Categoría no encontrada")
     return updated
 
-@app.delete("/admin/categories/{category_id}", response_model=schemas.Category, tags=["Admin"])
-def admin_delete_category(category_id: int, db: Session = Depends(get_db)):
+@app.delete("/categories/{category_id}", response_model=schemas.Category, tags=["Admin: Categories"])
+def delete_category(category_id: int, db: Session = Depends(get_db)):
     deleted = crud.delete_category(db, category_id=category_id)
     if not deleted: raise HTTPException(status_code=404, detail="Categoría no encontrada")
     return deleted
 
 # --- Admin: Usuarios ---
-@app.get("/admin/users", response_model=List[schemas.User], tags=["Admin"])
-def admin_read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
+@app.get("/users/", response_model=List[schemas.User], tags=["Admin: Users"])
+def read_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     return crud.get_users(db, skip=skip, limit=limit)
 
-@app.put("/admin/users/{user_id}", response_model=schemas.User, tags=["Admin"])
-def admin_update_user(user_id: int, user_update: schemas.UserUpdate, db: Session = Depends(get_db)):
+@app.put("/users/{user_id}", response_model=schemas.User, tags=["Admin: Users"])
+def update_user(user_id: int, user_update: schemas.UserUpdate, db: Session = Depends(get_db)):
     updated = crud.update_user(db, user_id=user_id, user_update=user_update)
-    if not updated: raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    if not updated: raise HTTPException(404, "Usuario no encontrado")
     return updated
 
-@app.delete("/admin/users/{user_id}", response_model=schemas.User, tags=["Admin"])
-def admin_delete_user(user_id: int, db: Session = Depends(get_db)):
+@app.delete("/users/{user_id}", response_model=schemas.User, tags=["Admin: Users"])
+def delete_user(user_id: int, db: Session = Depends(get_db)):
     deleted = crud.delete_user(db, user_id=user_id)
-    if not deleted: raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    if not deleted: raise HTTPException(404, "Usuario no encontrado")
     return deleted
 
 # --- Admin: FAQ ---
