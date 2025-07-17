@@ -66,7 +66,7 @@ const PreguntasSinResponderPage = () => {
                     </tbody>
                 </table>
             </div>
-            <Link to="/admin/panel" className="admin-menu-action admin-return-button">Volver al Panel</Link>
+            <Link to="/admin/panel" className="admin-menu-action admin-return-button">Volver al Panel de Administrador</Link>
         </div>
     );
 };

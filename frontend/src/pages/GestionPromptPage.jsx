@@ -88,7 +88,7 @@ const GestionPromptPage = () => {
             </div>
 
             <Link to="/admin/panel" className="admin-menu-action admin-return-button">
-                Volver al Panel
+                Volver al Panel de Administrador
             </Link>
         </div>
     );

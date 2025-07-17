@@ -928,3 +928,30 @@ select:focus {
     border: 1px solid #f5c6cb;
     color: #721c24;
 }
+.about-page-content {
+    background-color: var(--white);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.about-section {
+    margin-bottom: 2.5rem;
+}
+
+.about-section:last-child {
+    margin-bottom: 0;
+}
+
+.about-section h3 {
+    font-size: 1.5rem;
+    color: var(--blue-nav);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.about-section p {
+    line-height: 1.7;
+    color: #495057;
+}

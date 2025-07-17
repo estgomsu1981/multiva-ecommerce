@@ -72,14 +72,13 @@ const Header = () => {
                 <div className="nav-spacer"></div>
 
                 <Link to="/descuentos">Descuentos</Link>
-                <Link to="/preguntas-frecuentes">Preguntas Frecuentes</Link>
                 <Link to="/acerca-de-la-empresa">Acerca de la empresa</Link>
                 <Link to="/ayuda">Ayuda</Link>
                 
                 {user && user.tipo_usuario === 'Administrador' && (
                     <Link to="/admin/panel">Panel de Administrador</Link>
                 )}
-                
+
                 <div className="dropdown">
                     <button className="dropdown-toggle-btn">Mi Cuenta</button>
                     <div className="dropdown-content">
