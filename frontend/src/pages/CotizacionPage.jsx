@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { Link } from 'react-router-dom';
-import { AuthWall } from '../components/ChatInterface';
+import React, { useState, useEffect, useContext, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import ChatInterface, { AuthWall } from '../components/ChatInterface';
+import SmartChat from '../components/SmartChat';
 import EditableUserDataForm from '../components/EditableUserDataForm';
 import AuthContext from '../context/AuthContext';
 import CartContext from '../context/CartContext';
@@ -9,20 +10,32 @@ import { enviarCotizacion } from '../services/quoteService';
 
 const CotizacionPage = () => {
     const { user } = useContext(AuthContext);
-    const { cartItems, clearCart } = useContext(CartContext); // <-- Corregido: pide clearCart
+    const { cartItems, clearCart } = useContext(CartContext);
+    const navigate = useNavigate();
     
     const [messages, setMessages] = useState([]);
-    const [conversationState, setConversationState] = useState('confirm_data');
+    const [conversationState, setConversationState] = useState('initial');
     const [isEditingData, setIsEditingData] = useState(false);
     const [formMessage, setFormMessage] = useState(null);
-    const [isBotTyping, setIsBotTyping] = useState(false); // <-- Corregido: añade este estado
+
+    const chatBoxRef = useRef(null);
+
+
+    const formatPrice = (price) => {
+        return new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC' }).format(Number(price) || 0);
+    };
 
     useEffect(() => {
-        if (user && user.email) {
+        if (user && cartItems.length === 0 && conversationState === 'initial') {
+            alert("Tu carrito está vacío. Añade productos para poder cotizar.");
+            navigate('/');
+            return;
+        }
+        if (user && user.email && conversationState === 'initial') {
             const initialBotMessage = {
                 text: (
                     <>
-                        <p>Hola, {user.nombre}. Para continuar, por favor confirma que estos son tus datos de contacto:</p>
+                        <p>Hola, {user.nombre}. Para continuar, por favor confirma tus datos de contacto:</p>
                         <p><strong>Correo:</strong> {user.email}</p>
                         <p><strong>Teléfono:</strong> {user.telefono}</p>
                         <p><strong>Dirección:</strong> {user.direccion}</p>
@@ -34,56 +47,76 @@ const CotizacionPage = () => {
             setMessages([initialBotMessage]);
             setConversationState('confirm_data');
         }
-    }, [user]);
+    }, [user, cartItems, conversationState, navigate]);
 
-    const handleSendQuote = async (contactData) => {
-        setIsBotTyping(true); // Usa el estado
-        const resultado = await enviarCotizacion({
-            nombre: contactData.nombre,
-            correo: contactData.email,
-            telefono: contactData.telefono,
-            direccion: contactData.direccion,
-            pedido: cartItems
-        });
-        setIsBotTyping(false); // Usa el estado
-
-        if (resultado.ok) {
-            const finalMessage = { text: "¡Perfecto! Tu cotización ha sido enviada. Un agente te contactará pronto. Gracias por preferirnos.", sender: 'bot' };
-            setMessages(prev => [...prev, finalMessage]);
-            setConversationState('final_message');
-            clearCart(); // Usa la función del contexto
-        } else {
-            const errorMessage = { text: `Lo siento, hubo un problema al enviar la cotización: ${resultado.mensaje}`, sender: 'bot' };
-            setMessages(prev => [...prev, errorMessage]);
+    useEffect(() => {
+        if (chatBoxRef.current) {
+            chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
         }
-    };
+    }, [messages]);
 
     const handleDataSave = async (updatedData) => {
+        setFormMessage({ text: 'Guardando...', type: 'loading' });
         try {
             await apiClient.put(`/users/me/contact`, updatedData);
-            handleSendQuote({ nombre: user.nombre, ...updatedData });
-            setIsEditingData(false);
-        } catch(err) {
-            // ...
+            const resultado = await enviarCotizacion({ nombre: user.nombre, ...updatedData, pedido: cartItems });
+            if (resultado.ok) {
+                const successMessage = { text: <><strong>✔ ¡Datos actualizados y cotización enviada!</strong><p>¿Necesitas ayuda con algo más? (si/no)</p></>, sender: 'bot' };
+                setMessages(prev => [...messages.slice(0, 1), successMessage]);
+                setConversationState('post_update_query');
+                setIsEditingData(false);
+                clearCart();
+            } else {
+                 throw new Error(resultado.mensaje);
+            }
+        } catch (error) {
+            setFormMessage({ text: `Hubo un error al guardar: ${error.message}`, type: 'error' });
         }
     };
 
-    const handleQuoteMessage = (userInput, addBotResponse) => {
+    const handleInitialChat = async (userInput) => {
         const userMessage = { text: userInput, sender: 'user' };
         setMessages(prev => [...prev, userMessage]);
         const input = userInput.toLowerCase();
+
         if (conversationState === 'confirm_data') {
             if (input.includes('si')) {
-                handleSendQuote({nombre: user.nombre, email: user.email, telefono: user.telefono, direccion: user.direccion});
+                // Preparamos los datos explícitamente para asegurar que no falte nada
+                const contactData = {
+                    nombre: user.nombre,
+                    correo: user.email,
+                    telefono: user.telefono,
+                    direccion: user.direccion,
+                    pedido: cartItems
+                };
+
+                const resultado = await enviarCotizacion(contactData);
+                
+                if (resultado.ok) {
+                    setMessages(prev => [...prev, { text: "¡Perfecto! Tu cotización ha sido enviada. ¿Necesitas ayuda con algo más? (si/no)", sender: 'bot' }]);
+                    setConversationState('post_confirm_query');
+                    clearCart();
+                } else {
+                    setMessages(prev => [...prev, { text: `Lo siento, hubo un problema: ${resultado.mensaje}`, sender: 'bot' }]);
+                }
             } else {
                 setIsEditingData(true);
-                setMessages(prev => prev.slice(0, -1));
+            }
+        } else if (conversationState === 'post_confirm_query' || conversationState === 'post_update_query') {
+            if (input.includes('si')) {
+                setConversationState('general_help'); // Cambia a modo de ayuda general
+                const botNextMessage = { text: "De acuerdo. Por favor, escribe tu consulta.", sender: 'bot' };
+                setMessages(prev => [...prev, botNextMessage]);
+            } else {
+                setConversationState('final_message');
+                setTimeout(() => setMessages(prev => [...prev, { text: "Entendido. ¡Gracias por tu tiempo!", sender: 'bot' }]), 500);
             }
         }
     };
-    
-    const formatPrice = (price) => {
-        return new Intl.NumberFormat('es-CR', { style: 'currency', currency: 'CRC' }).format(Number(price) || 0);
+
+    const onCancelEdit = () => {
+        setIsEditingData(false);
+        setMessages(messages.slice(0, 1)); // Vuelve al mensaje inicial
     };
 
     const total = cartItems.reduce((sum, item) => sum + (Number(item.finalPrice) * Number(item.quantity)), 0);
@@ -94,10 +127,53 @@ const CotizacionPage = () => {
             
             <h3>📝 Pedido Cargado:</h3>
             <div className="table-responsive-wrapper" style={{marginBottom: '2rem'}}>
-                 {/* ... (código de la tabla no cambia) ... */}
+                <table>
+                    <thead><tr><th>Producto</th><th>Cantidad</th><th>Precio Unit.</th><th>Subtotal</th></tr></thead>
+                    <tbody>
+                        {cartItems.map(item => (
+                            <tr key={item.id}>
+                                <td>{item.nombre}</td>
+                                <td>{item.quantity}</td>
+                                <td>{formatPrice(item.finalPrice)}</td>
+                                <td>{formatPrice(item.finalPrice * item.quantity)}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colSpan="3" style={{textAlign: 'right', fontWeight: 'bold', fontSize: '1.2rem', borderTop: '2px solid #333'}}>Total del Pedido:</td>
+                            <td style={{fontWeight: 'bold', fontSize: '1.2rem', borderTop: '2px solid #333'}}>{formatPrice(total)}</td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
             
-            {/* ... (resto del JSX no cambia) ... */}
+            <div style={{marginTop: '2rem'}}>
+                {!user ? (
+                    <AuthWall><p>Para solicitar una cotización, por favor <Link to="/login">inicia sesión</Link>.</p></AuthWall>
+                ) : isEditingData ? (
+                    <div className="chat-container">
+                        <div className="chat-box">
+                            {messages.map((msg, index) => <div key={index} className={`chat-message ${msg.sender === 'bot' ? 'bot-message' : 'user-message'}`}>{msg.text}</div>)}
+                            <EditableUserDataForm 
+                                initialData={{ email: user.email, telefono: user.telefono, direccion: user.direccion }}
+                                onSave={handleDataSave}
+                                onCancel={onCancelEdit}
+                            />
+                            {formMessage && <div className={`bot-message form-status-message ${formMessage.type}`}>{formMessage.text}</div>}
+                        </div>
+                    </div>
+                ) : conversationState === 'general_help' ? (
+                    <SmartChat initialMessages={messages} />
+                ) : (
+                    <ChatInterface
+                        messages={messages}
+                        onSendMessage={handleInitialChat}
+                        disabled={conversationState === 'final_message'}
+                        placeholder={conversationState === 'final_message' ? 'Conversación finalizada' : 'Escribe "si" o "no"...'}
+                    />
+                )}
+            </div>
         </div>
     );
 };

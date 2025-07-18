@@ -52,3 +52,24 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     if user is None:
         raise credentials_exception
     return user
+
+def create_password_recovery_token(email: str):
+    # El token durará 15 minutos por seguridad
+    expire = datetime.now(timezone.utc) + timedelta(minutes=15)
+    to_encode = {
+        "exp": expire,
+        "sub": email, # El sujeto del token es el email del usuario
+        "scope": "password_recovery" # Un 'scope' para diferenciarlo de un token de acceso
+    }
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt
+
+def verify_password_recovery_token(token: str) -> Optional[str]:
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        # Verificamos que el token sea específicamente para recuperar contraseña
+        if payload.get("scope") != "password_recovery":
+            return None
+        return payload.get("sub") # Devuelve el email
+    except JWTError:
+        return None

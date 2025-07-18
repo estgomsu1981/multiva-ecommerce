@@ -290,3 +290,47 @@ def update_configuracion(clave: str, valor: str, db: Session = Depends(get_db)):
 @app.post("/faq/pending", response_model=schemas.Faq, tags=["FAQ"])
 def log_pending_question(faq_data: schemas.FaqCreate, db: Session = Depends(get_db)):
     return crud.create_pending_faq(db, faq_data=faq_data)
+
+@app.post("/password-recovery/{email}", tags=["Auth"])
+async def request_password_recovery(email: str, db: Session = Depends(get_db)):
+    """
+    Inicia el flujo de recuperación de contraseña.
+    Genera un token y (en un paso futuro) envía un correo.
+    """
+    user = crud.get_user_by_email(db, email=email)
+    # Por seguridad, no revelamos si el usuario existe o no.
+    if user:
+        recovery_token = security.create_password_recovery_token(email=email)
+        
+        # --- LÓGICA DE ENVÍO DE CORREO (vía Netlify Function) ---
+        # Aquí construiríamos la URL y llamaríamos a la función de Netlify
+        reset_url = f"http://localhost:8888/restablecer-contrasena?token={recovery_token}"
+        
+        # (El código para llamar a la función serverless de Netlify iría aquí,
+        # pero por ahora, imprimimos el enlace para poder probarlo)
+        print("--- ENLACE DE RECUPERACIÓN (PARA DESARROLLO) ---")
+        print(reset_url)
+        print("------------------------------------------------")
+
+    return {"message": "Si existe una cuenta asociada a este correo, recibirás un enlace para restablecer tu contraseña."}
+
+
+@app.post("/reset-password/", tags=["Auth"])
+def reset_password(
+    token: str = Body(...),
+    new_password: str = Body(...),
+    db: Session = Depends(get_db)
+):
+    """
+    Restablece la contraseña usando un token válido.
+    """
+    email = security.verify_password_recovery_token(token)
+    if not email:
+        raise HTTPException(status_code=400, detail="Token inválido o expirado")
+    
+    user = crud.get_user_by_email(db, email=email)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuario no encontrado")
+    
+    crud.update_user_password(db, user=user, new_password=new_password)
+    return {"message": "Contraseña actualizada exitosamente"}

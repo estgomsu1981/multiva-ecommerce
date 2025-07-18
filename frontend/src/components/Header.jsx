@@ -73,7 +73,10 @@ const Header = () => {
 
                 <Link to="/descuentos">Descuentos</Link>
                 <Link to="/acerca-de-la-empresa">Acerca de la empresa</Link>
-                <Link to="/ayuda">Ayuda</Link>
+                {/* El enlace a "Ayuda" solo se muestra si existe un usuario logueado */}
+                {user && (
+                    <Link to="/ayuda">Ayuda</Link>
+                )}
                 
                 {user && user.tipo_usuario === 'Administrador' && (
                     <Link to="/admin/panel">Panel de Administrador</Link>

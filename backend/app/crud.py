@@ -269,3 +269,11 @@ def delete_faq(db: Session, faq_id: int):
         db.delete(db_faq)
         db.commit()
     return db_faq
+
+def update_user_password(db: Session, user: models.User, new_password: str):
+    hashed_password = security.get_password_hash(new_password)
+    user.hashed_password = hashed_password
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user

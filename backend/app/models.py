@@ -66,3 +66,4 @@ class Faq(Base):
     pregunta = Column(Text, nullable=False)
     respuesta = Column(Text, nullable=True) # <-- CLAVE: nullable=True
     estado = Column(String, default='pendiente', nullable=False)
+
