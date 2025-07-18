@@ -291,27 +291,34 @@ def update_configuracion(clave: str, valor: str, db: Session = Depends(get_db)):
 def log_pending_question(faq_data: schemas.FaqCreate, db: Session = Depends(get_db)):
     return crud.create_pending_faq(db, faq_data=faq_data)
 
+
 @app.post("/password-recovery/{email}", tags=["Auth"])
 async def request_password_recovery(email: str, db: Session = Depends(get_db)):
-    """
-    Inicia el flujo de recuperación de contraseña.
-    Genera un token y (en un paso futuro) envía un correo.
-    """
     user = crud.get_user_by_email(db, email=email)
-    # Por seguridad, no revelamos si el usuario existe o no.
     if user:
         recovery_token = security.create_password_recovery_token(email=email)
         
-        # --- LÓGICA DE ENVÍO DE CORREO (vía Netlify Function) ---
-        # Aquí construiríamos la URL y llamaríamos a la función de Netlify
-        reset_url = f"http://localhost:8888/restablecer-contrasena?token={recovery_token}"
+        # --- LÓGICA DE ENVÍO DE CORREO ---
+        # Reemplaza la URL base con tu URL de Netlify cuando la tengas
+        base_url = "http://localhost:8888" 
+        reset_url = f"{base_url}/restablecer-contrasena?token={recovery_token}"
         
-        # (El código para llamar a la función serverless de Netlify iría aquí,
-        # pero por ahora, imprimimos el enlace para poder probarlo)
-        print("--- ENLACE DE RECUPERACIÓN (PARA DESARROLLO) ---")
-        print(reset_url)
-        print("------------------------------------------------")
+        # URL de nuestra nueva función serverless
+        netlify_function_url = "https://tu-sitio.netlify.app/.netlify/functions/send-recovery-email"
+        # Para pruebas locales, podrías usar la URL de netlify dev si tienes problemas de CORS
+        # netlify_function_url = "http://localhost:8888/.netlify/functions/send-recovery-email"
 
+        async with httpx.AsyncClient() as client:
+            try:
+                await client.post(
+                    netlify_function_url,
+                    json={"email": email, "reset_url": reset_url}
+                )
+            except Exception as e:
+                print(f"Error al llamar a la función de Netlify para enviar correo: {e}")
+                # No lanzamos un error al frontend para no revelar si el correo existe
+    
+    # Siempre devolvemos el mismo mensaje por seguridad
     return {"message": "Si existe una cuenta asociada a este correo, recibirás un enlace para restablecer tu contraseña."}
 
 
