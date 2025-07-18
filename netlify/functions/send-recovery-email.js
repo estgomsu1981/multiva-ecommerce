@@ -10,6 +10,14 @@ const allowedOrigins = [
 ];
 
 exports.handler = async function(event, context) {
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:8888',
+  'https://tu-sitio-en-netlify.netlify.app' // <-- REEMPLAZA ESTO EN EL FUTURO
+];
+
+exports.handler = async function(event, context) {
   // --- Manejo de CORS ---
   const origin = event.headers.origin;
   const headers = {
@@ -32,10 +40,8 @@ exports.handler = async function(event, context) {
   // Asegura que solo se acepten peticiones POST
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: 'Method Not Allowed' };
-  }
-  
-    
-  
+  }    
+
   try {
     const { email, reset_url } = JSON.parse(event.body);
 
@@ -70,10 +76,11 @@ exports.handler = async function(event, context) {
     };
 
   } catch (error) {
-    console.error("Error en 'send-recovery-email':", error);
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ mensaje: 'Error al enviar el correo de recuperación.' }),
+        console.error("Error en 'send-recovery-email':", error);
+        return {
+        statusCode: 500,
+        body: JSON.stringify({ mensaje: 'Error al enviar el correo de recuperación.' }),
+        };
     };
-  }
+   }
 };

@@ -299,7 +299,7 @@ async def request_password_recovery(email: str, db: Session = Depends(get_db)):
         
         # --- LÓGICA DE ENVÍO DE CORREO ---
         # La URL base DEBE ser la de Netlify, no la de tu backend
-        base_url = "https://tu-sitio-frontend.netlify.app" # <-- ¡IMPORTANTE! Usa tu URL de Netlify
+        base_url =  "http://localhost:3000" # <-- ¡IMPORTANTE! Usa tu URL de Netlify
         reset_url = f"{base_url}/restablecer-contrasena?token={recovery_token}"
         
         # La URL de la función serverless
