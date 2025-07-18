@@ -2,7 +2,39 @@
 const nodemailer = require('nodemailer');
 
 exports.handler = async function(event, context) {
-  // ... (pega aquí la misma lógica de CORS que tienes en send-email.js) ...
+
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:8888',
+  'https://tu-sitio-en-netlify.netlify.app' // <-- REEMPLAZA ESTO EN EL FUTURO
+];
+
+exports.handler = async function(event, context) {
+  // --- Manejo de CORS ---
+  const origin = event.headers.origin;
+  const headers = {
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS'
+  };
+  if (allowedOrigins.includes(origin)) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  }
+
+  // Responde a la petición de verificación (preflight) de CORS
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 204,
+      headers,
+      body: ''
+    };
+  }
+
+  // Asegura que solo se acepten peticiones POST
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, headers, body: 'Method Not Allowed' };
+  }
+  
+    
   
   try {
     const { email, reset_url } = JSON.parse(event.body);
