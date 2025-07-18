@@ -20,6 +20,8 @@ import CotizacionPage from './pages/CotizacionPage';
 import GestionPromptPage from './pages/GestionPromptPage';
 import PreguntasSinResponderPage from './pages/PreguntasSinResponderPage';
 import AcercaDePage from './pages/AcercaDePage'; 
+import OlvidoContrasenaPage from './pages/OlvidoContrasenaPage';
+import RestablecerContrasenaPage from './pages/RestablecerContrasenaPage';
 import './style.css';
 
 function App() {
@@ -45,6 +47,8 @@ function App() {
                     <Route path="/admin/prompt" element={<GestionPromptPage />} />
                     <Route path="/admin/preguntas-sin-responder" element={<PreguntasSinResponderPage />} />
                     <Route path="/acerca-de-la-empresa" element={<AcercaDePage />} />
+                    <Route path="/olvido-contrasena" element={<OlvidoContrasenaPage />} />
+                    <Route path="/restablecer-contrasena" element={<RestablecerContrasenaPage />} />
                 </Route>               
             </Routes>
         </Router>
