@@ -291,7 +291,6 @@ def update_configuracion(clave: str, valor: str, db: Session = Depends(get_db)):
 def log_pending_question(faq_data: schemas.FaqCreate, db: Session = Depends(get_db)):
     return crud.create_pending_faq(db, faq_data=faq_data)
 
-
 @app.post("/password-recovery/{email}", tags=["Auth"])
 async def request_password_recovery(email: str, db: Session = Depends(get_db)):
     user = crud.get_user_by_email(db, email=email)
@@ -299,28 +298,31 @@ async def request_password_recovery(email: str, db: Session = Depends(get_db)):
         recovery_token = security.create_password_recovery_token(email=email)
         
         # --- LÓGICA DE ENVÍO DE CORREO ---
-        # Reemplaza la URL base con tu URL de Netlify cuando la tengas
-        base_url = "http://localhost:8888" 
+        # La URL base DEBE ser la de Netlify, no la de tu backend
+        base_url = "https://tu-sitio-frontend.netlify.app" # <-- ¡IMPORTANTE! Usa tu URL de Netlify
         reset_url = f"{base_url}/restablecer-contrasena?token={recovery_token}"
         
-        # URL de nuestra nueva función serverless
-        netlify_function_url = "https://tu-sitio.netlify.app/.netlify/functions/send-recovery-email"
-        # Para pruebas locales, podrías usar la URL de netlify dev si tienes problemas de CORS
-        # netlify_function_url = "http://localhost:8888/.netlify/functions/send-recovery-email"
+        # La URL de la función serverless
+        netlify_function_url = f"{base_url}/.netlify/functions/send-recovery-email"
+        
+        print(f"--- Intentando llamar a la función de Netlify en: {netlify_function_url} ---")
+        print(f"--- Enviando datos: email={email}, reset_url={reset_url} ---")
 
         async with httpx.AsyncClient() as client:
             try:
-                await client.post(
+                response = await client.post(
                     netlify_function_url,
-                    json={"email": email, "reset_url": reset_url}
+                    json={"email": email, "reset_url": reset_url},
+                    timeout=20.0 # Aumentamos el timeout
                 )
+                response.raise_for_status() # Lanza un error si la respuesta es 4xx o 5xx
+                print("--- Llamada a Netlify exitosa. Respuesta:", response.json())
+
             except Exception as e:
-                print(f"Error al llamar a la función de Netlify para enviar correo: {e}")
+                print(f"--- ¡ERROR! Al llamar a la función de Netlify: {e} ---")
                 # No lanzamos un error al frontend para no revelar si el correo existe
     
-    # Siempre devolvemos el mismo mensaje por seguridad
-    return {"message": "Si existe una cuenta asociada a este correo, recibirás un enlace para restablecer tu contraseña."}
-
+    return {"message": "Si existe una cuenta asociada..."}
 
 @app.post("/reset-password/", tags=["Auth"])
 def reset_password(
