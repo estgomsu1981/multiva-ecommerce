@@ -33,6 +33,7 @@ exports.handler = async function(event, context) {
   // --- Lógica Principal ---
   try {
     const { email, reset_url } = JSON.parse(event.body);
+    console.log(`Iniciando envío de correo de recuperación para: ${email}`);
 
     let transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -54,9 +55,9 @@ exports.handler = async function(event, context) {
           <p>Si no solicitaste esto, puedes ignorar este correo.</p>
           <p>Este enlace expirará en 15 minutos.</p>
         </div>
-      `,
+      `
     };
-
+  
     await transporter.sendMail(mailOptions);
     
     return {
