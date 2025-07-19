@@ -1,17 +1,22 @@
-# Archivo: /netlify.toml
+# Archivo: netlify.toml
+# Configuración FINAL para el despliegue
 
-# Configuración de Build
 [build]
-  # Directorio que Netlify usará para desplegar tu frontend
-  publish = "frontend/build"
-  # Directorio donde Netlify buscará tus funciones serverless
+  # 1. Directorio base: Netlify entra aquí primero.
+  base = "frontend"
+  
+  # 2. Comando de build: Se ejecuta dentro de 'frontend'.
+  command = "npm run build"
+  
+  # 3. Directorio de publicación: Relativo a 'base'.
+  #    Esta es la corrección clave.
+  publish = "build"
+
+  # 4. Directorio de funciones: Relativo a la RAÍZ del repositorio.
   functions = "netlify/functions"
 
-# Configuración para el desarrollo local con 'netlify dev'
+# La configuración de desarrollo local no necesita cambiar.
 [dev]
-  # Comando para iniciar tu app de React
   command = "npm start --prefix frontend"
-  # Puerto donde se ejecutará el entorno completo de Netlify
   port = 8888
-  # Puerto en el que corre tu app de React
   targetPort = 3000
