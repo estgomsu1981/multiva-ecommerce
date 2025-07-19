@@ -4,7 +4,7 @@ const nodemailer = require('nodemailer');
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:8888',
-  'https://tu-sitio-en-netlify.netlify.app' // <-- REEMPLAZA ESTO EN EL FUTURO
+  'https://multiva-ecommerce.netlify.app'
 ];
 
 exports.handler = async function(event, context) {
