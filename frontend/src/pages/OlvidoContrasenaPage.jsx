@@ -14,6 +14,7 @@ const OlvidoContrasenaPage = () => {
         setMessage('');
         try {
             const response = await apiClient.post(`/password-recovery/${email}`);
+            console.log('Solicitud de recuperación enviada para el email:', email);
             setMessage(response.data.message);
         } catch (err) {
             setError('Ocurrió un error. Por favor, intenta de nuevo.');
