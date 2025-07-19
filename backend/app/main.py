@@ -25,7 +25,7 @@ origins = [
     "http://localhost:3000",
     "https://multiva-ecommerce.onrender.com",
     "http://localhost:8888", 
-    "https://multiva-ecommerce.netlify.app"  
+    "https://multiva-ecomerce.netlify.app"  
     # Añade aquí la URL de tu frontend de Netlify cuando la tengas
 ]
 app.add_middleware(
