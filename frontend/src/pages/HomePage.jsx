@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 const HomePage = () => {
     // Hooks de estado y contexto
     //const { user, logout } = useContext(AuthContext);
-    const navigate = useNavigate();
+    //const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
    /* const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);*/
