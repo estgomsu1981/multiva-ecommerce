@@ -4,7 +4,7 @@ import apiClient from '../api/axios';
 
 // --- NUEVO ---
 // Componente pequeño y estilizado para el enlace de la imagen
-const ImageUrlLink = ({ url }) => {
+/*const ImageUrlLink = ({ url }) => {
     if (!url) return 'N/A';
 
     // Estilos para evitar que la URL larga rompa la tabla
@@ -23,7 +23,7 @@ const ImageUrlLink = ({ url }) => {
             {url}
         </a>
     );
-};
+};*/
 
 
 const GestionCategorias = () => {

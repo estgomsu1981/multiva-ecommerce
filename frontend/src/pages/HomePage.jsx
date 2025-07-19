@@ -7,11 +7,11 @@ import { Link } from 'react-router-dom';
 
 const HomePage = () => {
     // Hooks de estado y contexto
-    const { user, logout } = useContext(AuthContext);
+    //const { user, logout } = useContext(AuthContext);
     const navigate = useNavigate();
     const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+   /* const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);*/
 
     // Cargar categorías al montar el componente
     useEffect(() => {
@@ -31,7 +31,7 @@ const HomePage = () => {
     }, []);
 
     // --- MANEJADORES DE EVENTOS ---
-    const handleLogout = () => {
+    /*const handleLogout = () => {
         logout();
         navigate('/'); // Redirige al inicio después de cerrar sesión
     };
@@ -39,7 +39,7 @@ const HomePage = () => {
     const handleNavToggle = (e) => {
         const nav = e.currentTarget.nextElementSibling;
         nav.classList.toggle('is-open');
-    };
+    };*/
 
     return (
         <>           
