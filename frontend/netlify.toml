@@ -1,0 +1,19 @@
+# Archivo: netlify.toml
+# Configuración final adaptada a la nueva estructura de carpetas.
+
+[build]
+  base    = "frontend"
+  command = "npm run build"
+  publish = "build"
+
+# Ahora la carpeta de funciones está dentro de 'frontend',
+# así que la definimos relativa a la raíz.
+[functions]
+  directory = "frontend/netlify/functions"
+  
+# La configuración de desarrollo local también necesita el ajuste.
+[dev]
+  command = "npm start --prefix frontend"
+  port = 8888
+  targetPort = 3000
+  functions = "frontend/netlify/functions" # Añade esto para 'netlify dev'
