@@ -20,8 +20,8 @@ const HomePage = () => {
                 const response = await apiClient.get('/categories/');
                 setCategories(response.data);
             } catch (err) {
-                setError('No se pudieron cargar las categorías. Por favor, intente más tarde.');
-                console.error(err);
+               // setError('No se pudieron cargar las categorías. Por favor, intente más tarde.');
+                console.error("Error al cargar categorías:", err); // Mantenemos el log
             } finally {
                 setLoading(false);
             }
