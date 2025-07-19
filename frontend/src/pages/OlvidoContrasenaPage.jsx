@@ -13,7 +13,7 @@ const OlvidoContrasenaPage = () => {
         setError('');
         setMessage('');
         try {
-            const response = await apiClient.post(`/password-recovery/${email}`);
+            const response = await apiClient.post(`/.netlify/functions/password-recovery/${email}`);
             console.log('Solicitud de recuperación enviada para el email:', email);
             setMessage(response.data.message);
         } catch (err) {
