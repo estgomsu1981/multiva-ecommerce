@@ -1,22 +1,14 @@
 // netlify/functions/send-recovery-email.js
 const nodemailer = require('nodemailer');
 
-exports.handler = async function(event, context) {
-
+// Orígenes permitidos (definidos una sola vez, fuera del handler)
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:8888',
-  'https://multiva-ecomerce.netlify.app'  
+  'https://multiva-ecommerce.netlify.app' 
 ];
 
-exports.handler = async function(event, context) {
-
-const allowedOrigins = [
-  'http://localhost:3000',
-  'http://localhost:8888',
-  'https://tu-sitio-en-netlify.netlify.app' // <-- REEMPLAZA ESTO EN EL FUTURO
-];
-
+// El handler se define una sola vez
 exports.handler = async function(event, context) {
   // --- Manejo de CORS ---
   const origin = event.headers.origin;
@@ -28,20 +20,17 @@ exports.handler = async function(event, context) {
     headers['Access-Control-Allow-Origin'] = origin;
   }
 
-  // Responde a la petición de verificación (preflight) de CORS
+  // Respuesta para la petición de verificación (preflight) de CORS
   if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 204,
-      headers,
-      body: ''
-    };
+    return { statusCode: 204, headers, body: '' };
   }
 
-  // Asegura que solo se acepten peticiones POST
+  // Asegurarse de que solo se acepten peticiones POST
   if (event.httpMethod !== 'POST') {
     return { statusCode: 405, headers, body: 'Method Not Allowed' };
-  }    
+  }
 
+  // --- Lógica Principal ---
   try {
     const { email, reset_url } = JSON.parse(event.body);
 
@@ -72,15 +61,16 @@ exports.handler = async function(event, context) {
     
     return {
       statusCode: 200,
+      headers,
       body: JSON.stringify({ mensaje: 'Correo de recuperación enviado.' }),
     };
 
   } catch (error) {
-        console.error("Error en 'send-recovery-email':", error);
-        return {
-        statusCode: 500,
-        body: JSON.stringify({ mensaje: 'Error al enviar el correo de recuperación.' }),
-        };
+    console.error("Error en 'send-recovery-email':", error);
+    return {
+      statusCode: 500,
+      headers,
+      body: JSON.stringify({ mensaje: 'Error al enviar el correo de recuperación.' }),
     };
-   }
+  }
 };
