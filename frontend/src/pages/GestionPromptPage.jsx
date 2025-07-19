@@ -1,8 +1,9 @@
 // frontend/src/pages/GestionPromptPage.jsx
-import React, { useState, useEffect, useContext } from 'react';
+//import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import apiClient from '../api/axios';
-import AuthContext from '../context/AuthContext';
+//import AuthContext from '../context/AuthContext';
 
 const GestionPromptPage = () => {
     const [prompt, setPrompt] = useState('');
