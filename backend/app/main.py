@@ -6,6 +6,7 @@ from typing import List, Dict, Any, Optional
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
+import cloudinary.uploader  
 import json
 import httpx
 
@@ -271,10 +272,8 @@ def get_prompt_history_list(db: Session = Depends(get_db)):
 @app.post("/upload", tags=["Utilities"])
 async def upload_image(file: UploadFile = File(...)):
     try:
-        # Asumiendo que esta función existe en algún módulo, ej. security.py
-        # result = security.upload_to_cloudinary(file.file) 
-        # return {"url": result.get("secure_url")}
-        return {"url": "https://dummy.url/image.jpg"} # Placeholder
+        result = cloudinary.uploader.upload(file.file)
+        return {"url": result.get("secure_url")}
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Error al subir el archivo: {str(e)}")
 
